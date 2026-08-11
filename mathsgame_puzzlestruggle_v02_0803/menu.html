@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Puzzle Struggle - Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="menu_style.css" />
+  </head>
+  <body>
+    <div class="menu-shell">
+      <header class="menu-header">
+        <h1 class="menu-title">Puzzle Struggle Settings</h1>
+        <p class="menu-subtitle">Tune how questions work, then start the duel.</p>
+      </header>
+
+      <main class="menu-main">
+        <section class="menu-card" aria-label="Question mode">
+          <h2 class="card-title">Question mode</h2>
+          <div class="button-row" id="operation-buttons">
+            <button type="button" class="pill-button" data-operation="add">Addition</button>
+            <button type="button" class="pill-button" data-operation="sub">Subtraction</button>
+            <button type="button" class="pill-button" data-operation="mixed">Addition and subtraction</button>
+          </div>
+        </section>
+
+        <section class="menu-card" aria-label="Addition difficulty">
+          <h2 class="card-title">Addition difficulty</h2>
+          <p class="card-help">All addends are single digits. Choose the largest allowed sum.</p>
+          <div class="button-row" id="addition-difficulty-buttons">
+            <button type="button" class="pill-button" data-add-max-sum="10">Sums up to 10</button>
+            <button type="button" class="pill-button" data-add-max-sum="18">Sums up to 18</button>
+            <button type="button" class="pill-button" data-add-auto-mode="true">AUTO</button>
+          </div>
+        </section>
+
+        <section class="menu-card" aria-label="Subtraction difficulty">
+          <h2 class="card-title">Subtraction difficulty</h2>
+          <p class="card-help">
+            Subtraction is generated from single-digit addition.
+            The minuend (first number) will never be larger than your choice here.
+          </p>
+          <div class="button-row" id="subtraction-difficulty-buttons">
+            <button type="button" class="pill-button" data-sub-max-minuend="10">Minuend up to 10</button>
+            <button type="button" class="pill-button" data-sub-max-minuend="18">Minuend up to 18</button>
+            <button type="button" class="pill-button" data-sub-auto-mode="true">AUTO</button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="menu-footer">
+        <a href="index.html" class="primary-link">Start game</a>
+        <a href="index.html?mode=2p" class="primary-link">2 player</a>
+        <a href="index.html?mode=2p-pass" class="primary-link">2P pass and play</a>
+      </footer>
+    </div>
+
+    <script src="menu_script.js"></script>
+  </body>
+</html>

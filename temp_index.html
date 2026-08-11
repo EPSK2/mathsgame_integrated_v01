@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P1 Maths Intervention Programme</title>
+  <style>
+    :root {
+      --primary-color: #4A90E2;
+      --primary-hover: #357ABD;
+      --secondary-color: #50E3C2;
+      --secondary-hover: #38BFA2;
+      --bg-color: #F4F7F9;
+      --card-bg: #FFFFFF;
+      --text-color: #333333;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 40px 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 32px;
+      color: #2C3E50;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .btn {
+      display: block;
+      padding: 18px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-size: 1.15rem;
+      font-weight: 600;
+      line-height: 1.5;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-orange {
+      background-color: #FF9F43;
+      color: #FFFFFF;
+    }
+
+    .btn-orange:hover {
+      background-color: #EE8A2B;
+    }
+
+    .btn-puzzle {
+      background-color: #54A0FF;
+      color: #FFFFFF;
+    }
+
+    .btn-puzzle:hover {
+      background-color: #2E86DE;
+    }
+
+    .btn-subtext {
+      font-size: 0.95rem;
+      font-weight: normal;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>P1 Maths Intervention Programme</h1>
+    
+    <div class="button-group">
+      <a href="./mathsgame_orange_v02_0721/menu_2.html" class="btn btn-orange">
+        香橙島<br>
+        <span class="btn-subtext">數線尋寶</span>
+      </a>
+
+      <a href="./mathsgame_puzzlestruggle_v02_0803/menu_2.html" class="btn btn-puzzle">
+        計數對戰（單、雙人版本）<br>
+        <span class="btn-subtext">（樹屋、石碑、城堡）</span>
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>

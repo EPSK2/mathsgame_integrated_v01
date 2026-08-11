@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Zoom Animation</title>
+  <style>
+    :root {
+      --sky-top: #52A0C6; /*#f2f8ff;*/
+      --sky-mid: #52A0C6; /*#d6e8ff;*/
+      --sky-bottom: #52A0C6;/*#bfd9ff;*/
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-bottom) 100%);
+    }
+
+    #scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    #mapGroup {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 16vw;
+      height: 16vh;
+      min-width: 220px;
+      min-height: 140px;
+      transform: translate(-50%, -50%) scale(1);
+      transform-origin: center center;
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    #mapFrame {
+      position: absolute;
+      inset: 0;
+      background: #52A0C6;
+      overflow: hidden;
+    }
+
+    #mainMap {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: auto;
+      height: 100%;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+      border-radius: 22px;
+      box-shadow: none;
+    }
+
+    #ringClouds {
+      position: absolute;
+      inset: -18%;
+      pointer-events: none;
+    }
+
+    .ring-cloud {
+      position: absolute;
+      background-image: url("cloud.png");
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+      filter: drop-shadow(0 4px 7px rgba(55, 88, 130, 0.18));
+      opacity: 0.95;
+    }
+
+    #travelCloudLayer {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    #hazeLayer {
+      position: absolute;
+      inset: -12%;
+      z-index: 2;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 48% 36%, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.07) 38%, rgba(255, 255, 255, 0) 68%),
+        radial-gradient(ellipse at 58% 54%, rgba(198, 225, 255, 0.26) 0%, rgba(198, 225, 255, 0) 64%);
+      opacity: 0.6;
+      will-change: transform, opacity;
+    }
+
+    #lightRays {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0;
+      background:
+        conic-gradient(
+          from 180deg at 50% 44%,
+          rgba(255, 255, 255, 0.25) 0deg,
+          rgba(255, 255, 255, 0.03) 12deg,
+          rgba(255, 255, 255, 0.2) 25deg,
+          rgba(255, 255, 255, 0.04) 40deg,
+          rgba(255, 255, 255, 0.18) 58deg,
+          rgba(255, 255, 255, 0.02) 75deg,
+          rgba(255, 255, 255, 0.24) 92deg,
+          rgba(255, 255, 255, 0.04) 113deg,
+          rgba(255, 255, 255, 0.2) 130deg,
+          rgba(255, 255, 255, 0.03) 148deg,
+          rgba(255, 255, 255, 0.22) 165deg,
+          rgba(255, 255, 255, 0.02) 183deg,
+          rgba(255, 255, 255, 0.23) 202deg,
+          rgba(255, 255, 255, 0.03) 221deg,
+          rgba(255, 255, 255, 0.2) 242deg,
+          rgba(255, 255, 255, 0.03) 262deg,
+          rgba(255, 255, 255, 0.24) 282deg,
+          rgba(255, 255, 255, 0.03) 300deg,
+          rgba(255, 255, 255, 0.19) 320deg,
+          rgba(255, 255, 255, 0.03) 340deg,
+          rgba(255, 255, 255, 0.25) 360deg
+        );
+      filter: blur(1.6px);
+      will-change: transform, opacity;
+    }
+
+    #impactFlash {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.45) 24%, rgba(255, 255, 255, 0) 62%);
+      opacity: 0;
+      will-change: opacity;
+    }
+
+    .travel-cloud {
+      position: absolute;
+      width: auto;
+      height: auto;
+      will-change: transform, opacity;
+      filter: drop-shadow(0 6px 8px rgba(43, 66, 95, 0.22));
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at center, rgba(255, 255, 255, 0) 53%, rgba(89, 124, 178, 0.2) 100%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(119, 154, 206, 0.15) 100%);
+    }
+  </style>
+</head>
+<body>
+  <div id="scene">
+    <div id="mapGroup" aria-hidden="true">
+      <div id="mapFrame">
+        <img id="mainMap" src="大地圖 (1).jpg" alt="Map" />
+      </div>
+      <div id="ringClouds"></div>
+    </div>
+    <div id="hazeLayer"></div>
+    <div id="lightRays"></div>
+    <div id="travelCloudLayer"></div>
+    <div id="vignette"></div>
+    <div id="impactFlash"></div>
+  </div>
+
+  <script>
+    (function () {
+      const CLOUD_COUNT = 150;
+      const HIT_CAMERA_COUNT = 28;
+      const RING_COUNT = 26;
+      const TOTAL_MS = 7000;
+      const IDLE_MS = 450;
+      const CLOUD_START_MS = IDLE_MS;
+      const MAP_START_MS = 3000;
+      const MAP_END_MS = TOTAL_MS;
+      const CLOUD_ROUNDS = 5;
+      const ROUND_GAP_MS = 510;
+
+      const cloudLayer = document.getElementById("travelCloudLayer");
+      const mapGroup = document.getElementById("mapGroup");
+      const ringClouds = document.getElementById("ringClouds");
+      const mainMap = document.getElementById("mainMap");
+      const hazeLayer = document.getElementById("hazeLayer");
+      const lightRays = document.getElementById("lightRays");
+      const impactFlash = document.getElementById("impactFlash");
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const vpX = vw * 0.5;
+      const vpY = vh * 0.44;
+
+      const clouds = [];
+      let passedClouds = 0;
+      let animationStart = 0;
+      let flashStrength = 0;
+      let cloudLayerRemoved = false;
+
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+      const easeInOutCubic = (t) => {
+        if (t < 0.5) {
+          return 4 * t * t * t;
+        }
+        return 1 - Math.pow(-2 * t + 2, 3) / 2;
+      };
+
+      function createTravelClouds() {
+        const hitCameraIndices = new Set();
+        while (hitCameraIndices.size < HIT_CAMERA_COUNT) {
+          hitCameraIndices.add(Math.floor(Math.random() * CLOUD_COUNT));
+        }
+
+        const cloudsPerRound = Math.floor(CLOUD_COUNT / CLOUD_ROUNDS);
+        const roundStarts = [];
+        for (let r = 0; r < CLOUD_ROUNDS; r += 1) {
+          roundStarts.push(CLOUD_START_MS + r * ROUND_GAP_MS);
+        }
+
+        for (let i = 0; i < CLOUD_COUNT; i += 1) {
+          const hitCamera = hitCameraIndices.has(i);
+          const heightVh = lerp(20, 50, Math.random());
+          const roundIndex = Math.min(Math.floor(i / cloudsPerRound), CLOUD_ROUNDS - 1);
+          const preSpawn = roundIndex < 2;
+          const startDelayMs = preSpawn
+            ? CLOUD_START_MS + roundIndex * 160 + lerp(-70, 70, Math.random())
+            : roundStarts[roundIndex] + lerp(-110, 130, Math.random());
+
+          const startX = hitCamera
+            ? vpX + lerp(-vw * 0.17, vw * 0.17, Math.random())
+            : lerp(-vw * 0.22, vw * 1.22, Math.random());
+          const startY = hitCamera
+            ? vpY + lerp(-vh * 0.15, vh * 0.18, Math.random())
+            : lerp(-vh * 0.24, vh * 1.24, Math.random());
+
+          let offsetX = startX - vpX;
+          let offsetY = startY - vpY;
+
+          if (Math.abs(offsetX) + Math.abs(offsetY) < 10) {
+            offsetX = (Math.random() < 0.5 ? -1 : 1) * lerp(20, 65, Math.random());
+            offsetY = (Math.random() < 0.5 ? -1 : 1) * lerp(18, 52, Math.random());
+          }
+
+          const sideKick = hitCamera
+            ? lerp(-14, 14, Math.random())
+            : (offsetX >= 0 ? 1 : -1) * lerp(28, 170, Math.random());
+          const bottomBias = hitCamera
+            ? lerp(24, 90, Math.random())
+            : lerp(70, 230, Math.random());
+
+          const depthRate = hitCamera
+            ? lerp(0.9, 1.05, Math.random())
+            : lerp(0.62, 0.9, Math.random());
+          const scaleBias = hitCamera
+            ? lerp(1.0, 1.2, Math.random())
+            : lerp(0.84, 1.08, Math.random());
+          const travelDurationMs = hitCamera
+            ? lerp(2200, 3100, Math.random())
+            : lerp(2500, 3500, Math.random());
+
+          const el = document.createElement("img");
+          el.className = "travel-cloud";
+          el.src = "cloud.png";
+          el.alt = "";
+          el.setAttribute("aria-hidden", "true");
+          el.style.height = `${heightVh}vh`;
+          el.style.left = `${startX}px`;
+          el.style.top = `${startY}px`;
+          el.style.transform = "translate(-50%, -50%) scale(1)";
+          el.style.opacity = "0";
+          el.style.visibility = "hidden";
+          // Higher z-index for earlier rounds so newly spawned rounds appear behind them.
+          el.style.zIndex = String(1000 - roundIndex);
+          cloudLayer.appendChild(el);
+
+          clouds.push({
+            el,
+            hitCamera,
+            heightVh,
+            startX,
+            startY,
+            offsetX,
+            offsetY,
+            sideKick,
+            bottomBias,
+            depthRate,
+            scaleBias,
+            roundIndex,
+            preSpawn,
+            startDelayMs,
+            fadeInMs: lerp(260, 620, Math.random()),
+            travelDurationMs,
+            passed: false
+          });
+        }
+      }
+
+      function renderPreSpawnClouds(elapsedMs) {
+        const idleProgress = clamp(elapsedMs / IDLE_MS, 0, 1);
+        const idleFade = easeInOutCubic(idleProgress);
+
+        for (let i = 0; i < clouds.length; i += 1) {
+          const cloud = clouds[i];
+          if (!cloud.preSpawn || cloud.passed) {
+            continue;
+          }
+
+          const baseOpacity = cloud.roundIndex === 0 ? 0.72 : 0.56;
+          cloud.el.style.left = `${cloud.startX}px`;
+          cloud.el.style.top = `${cloud.startY}px`;
+          cloud.el.style.transform = "translate(-50%, -50%) scale(1)";
+          cloud.el.style.visibility = "visible";
+          cloud.el.style.opacity = String(baseOpacity * idleFade);
+        }
+      }
+
+      function createRingClouds() {
+        for (let i = 0; i < RING_COUNT; i += 1) {
+          const angle = (Math.PI * 2 * i) / RING_COUNT + (Math.random() - 0.5) * 0.32;
+          const radiusX = lerp(46, 58, Math.random());
+          const radiusY = lerp(39, 54, Math.random());
+
+          const x = 50 + Math.cos(angle) * radiusX;
+          const y = 50 + Math.sin(angle) * radiusY;
+
+          const cloud = document.createElement("div");
+          cloud.className = "ring-cloud";
+
+          const size = lerp(34, 120, Math.random());
+          const blur = lerp(0, 0.65, Math.random());
+
+          cloud.style.width = `${size}px`;
+          cloud.style.height = `${size * lerp(0.5, 0.7, Math.random())}px`;
+          cloud.style.left = `${x}%`;
+          cloud.style.top = `${y}%`;
+          cloud.style.transform = "translate(-50%, -50%)";
+          cloud.style.opacity = `${lerp(0.65, 0.95, Math.random())}`;
+          cloud.style.filter = `drop-shadow(0 3px 7px rgba(40, 72, 118, 0.2)) blur(${blur}px)`;
+
+          ringClouds.appendChild(cloud);
+        }
+      }
+
+      function updateCloud(cloud, elapsedMs) {
+        if (cloud.passed) {
+          cloud.el.style.display = "none";
+          cloud.el.style.visibility = "hidden";
+          return;
+        }
+
+        if (elapsedMs < cloud.startDelayMs) {
+          if (!cloud.preSpawn) {
+            cloud.el.style.opacity = "0";
+            cloud.el.style.visibility = "hidden";
+          }
+          return;
+        }
+
+        cloud.el.style.visibility = "visible";
+
+        const localElapsed = elapsedMs - cloud.startDelayMs;
+        const progressLinear = clamp(localElapsed / cloud.travelDurationMs, 0, 1);
+        const eased = easeInOutCubic(progressLinear);
+
+        // Map eased timeline into perspective depth to keep linear projection motion.
+        const maxT = 1.02 / cloud.depthRate;
+        const t = maxT * eased;
+
+        const depthDenom = 1 - t * cloud.depthRate;
+        const perspective = 1 / Math.max(depthDenom, 0.025);
+
+        const x = vpX + cloud.offsetX * perspective + cloud.sideKick * Math.pow(perspective, 1.08);
+        const y = vpY + cloud.offsetY * perspective + cloud.bottomBias * Math.pow(perspective, 1.15);
+        const scale = perspective * cloud.scaleBias;
+
+        cloud.el.style.left = `${x}px`;
+        cloud.el.style.top = `${y}px`;
+        cloud.el.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+        const alpha = clamp(1 - (perspective - 1) * 0.13, 0, 0.92);
+        const fadeInProgress = clamp(localElapsed / cloud.fadeInMs, 0, 1);
+        const fadeIn = easeInOutCubic(fadeInProgress);
+        cloud.el.style.opacity = String(alpha * fadeIn);
+
+        const estHeight = vh * (cloud.heightVh / 100) * scale;
+        const estWidth = estHeight * 2.2;
+
+        const outLeft = x + estWidth * 0.5 < -120;
+        const outRight = x - estWidth * 0.5 > vw + 120;
+        const outBottom = y - estHeight * 0.5 > vh + 120;
+        const cameraCross = depthDenom <= 0.03 || progressLinear >= 1;
+
+        if (cameraCross && cloud.hitCamera && elapsedMs > CLOUD_START_MS + 550) {
+          flashStrength = Math.max(flashStrength, lerp(0.14, 0.32, Math.random()));
+        }
+
+        if (outBottom || outLeft || outRight || cameraCross) {
+          cloud.passed = true;
+          passedClouds += 1;
+        }
+      }
+
+      function updateMap(elapsedMs) {
+        if (elapsedMs < MAP_START_MS) {
+          return;
+        }
+
+        const revealBase = clamp((elapsedMs - MAP_START_MS) / (MAP_END_MS - MAP_START_MS), 0, 1);
+        const eased = easeOutCubic(revealBase);
+
+        const widthVw = lerp(16, 100, eased);
+        const heightVh = lerp(16, 100, eased);
+
+        mapGroup.style.opacity = `${eased}`;
+        mapGroup.style.width = `${widthVw}vw`;
+        mapGroup.style.height = `${heightVh}vh`;
+        mapGroup.style.transform = "translate(-50%, -50%) scale(1)";
+
+        const radius = lerp(22, 0, eased);
+        mainMap.style.borderRadius = `${radius}px`;
+      }
+
+      function updateAtmosphere(elapsedMs) {
+        const t = clamp(elapsedMs / TOTAL_MS, 0, 1);
+        const driftX = lerp(-18, 15, t);
+        const driftY = lerp(0, -10, t);
+        hazeLayer.style.transform = `translate(${driftX}px, ${driftY}px)`;
+        hazeLayer.style.opacity = String(lerp(0.62, 0.34, t));
+
+        const rayRise = clamp((elapsedMs - CLOUD_START_MS) / (TOTAL_MS - CLOUD_START_MS), 0, 1);
+        const rayEase = easeInOutCubic(rayRise);
+        lightRays.style.opacity = String(lerp(0.0, 0.42, rayEase));
+        lightRays.style.transform = `scale(${lerp(1, 1.11, rayEase)}) rotate(${lerp(0, 9, rayEase)}deg)`;
+      }
+
+      function updateImpactFlash(elapsedMs) {
+        if (elapsedMs < CLOUD_START_MS) {
+          impactFlash.style.opacity = "0";
+          return;
+        }
+
+        flashStrength = Math.max(0, flashStrength - 0.09);
+        impactFlash.style.opacity = String(clamp(flashStrength, 0, 0.35));
+      }
+
+      function animate(now) {
+        if (!animationStart) {
+          animationStart = now;
+        }
+
+        const elapsed = now - animationStart;
+
+        if (elapsed < IDLE_MS) {
+          // Keep first two rounds visible before movement begins.
+          renderPreSpawnClouds(elapsed);
+          requestAnimationFrame(animate);
+          return;
+        }
+
+        for (let i = 0; i < clouds.length; i += 1) {
+          updateCloud(clouds[i], elapsed);
+        }
+
+        updateMap(elapsed);
+        updateAtmosphere(elapsed);
+        updateImpactFlash(elapsed);
+
+        if (elapsed >= TOTAL_MS) {
+          passedClouds = CLOUD_COUNT;
+        }
+
+        if (elapsed < TOTAL_MS) {
+          requestAnimationFrame(animate);
+          return;
+        }
+
+        mapGroup.style.opacity = "1";
+        mapGroup.style.width = "100vw";
+        mapGroup.style.height = "100vh";
+        mapGroup.style.transform = "translate(-50%, -50%) scale(1)";
+        mainMap.style.borderRadius = "0";
+        lightRays.style.opacity = "0.42";
+        hazeLayer.style.opacity = "0.34";
+        impactFlash.style.opacity = "0";
+
+        if (!cloudLayerRemoved && cloudLayer.parentNode) {
+          cloudLayer.parentNode.removeChild(cloudLayer);
+          cloudLayerRemoved = true;
+        }
+      }
+
+      createTravelClouds();
+      createRingClouds();
+      requestAnimationFrame(animate);
+
+      window.addEventListener("resize", () => {
+        // Keep behavior deterministic for the initial run; reload on resize for clean re-layout.
+        window.location.reload();
+      });
+    })();
+  </script>
+</body>
+</html>

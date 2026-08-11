@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Puzzle Struggle - Bear Jump Duel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="game-shell">
+      <header class="top-bar">
+        <div class="mode-selector">
+          <span class="label">Mode:</span>
+          <button class="toggle-button active" data-mode="turn" type="button">
+            Turn-based: First to 10
+          </button>
+          <button class="toggle-button" data-mode="race" type="button">
+            Race: 10 Questions
+          </button>
+        </div>
+
+        <div class="difficulty-selector">
+          <span class="label">Difficulty:</span>
+          <button class="toggle-button active" data-max-sum="10" type="button">
+            Sums up to 10
+          </button>
+          <button class="toggle-button" data-max-sum="18" type="button">
+            Sums up to 18
+          </button>
+        </div>
+
+        <div class="status-panel">
+          <div class="steps-status" id="steps-count">You 0 / NPC 0</div>
+          <div class="timer-status">Time: <span id="timer-display">-</span></div>
+          <div class="npc-status">NPC: <span id="npc-status">Waiting...</span></div>
+        </div>
+      </header>
+
+            <main class="game-scene">
+              <div class="scene-row">
+
+
+                    <section class="lane-card" aria-label="Player scene">
+            <div class="lane-header">
+              <span class="lane-title">YOU</span>
+              <span class="lane-subtitle">Solve first to jump</span>
+            </div>
+            <div class="jump-arena jump-arena-player">
+              <div class="path path-player">
+                <div class="step" data-index="1"></div>
+                <div class="step" data-index="2"></div>
+                <div class="step" data-index="3"></div>
+                <div class="step" data-index="4"></div>
+                <div class="step" data-index="5"></div>
+                <div class="step" data-index="6"></div>
+                <div class="step" data-index="7"></div>
+                <div class="step" data-index="8"></div>
+                <div class="step" data-index="9"></div>
+                <div class="step" data-index="10"></div>
+              </div>
+                            <div class="bear-anchor bear-anchor-player">
+                <img class="bear character-player" src="./bear.png" alt="Player bear" />
+                <div class="bear-sprite character-player-sprite"></div>
+              </div>
+
+            </div>
+          </section>
+
+          <div class="river-frame">
+            <div class="river-column river-column-left">
+              <img class="river-column-image" src="./river.png" alt="Left river" />
+              <img class="progress-flag progress-flag-good" src="./progress_good_flag.png" alt="Your progress" />
+            </div>
+            <div class="river-column river-column-right">
+              <img class="river-column-image" src="./river.png" alt="Right river" />
+              <img class="progress-flag progress-flag-bad" src="./progress_bad_flag.png" alt="NPC progress" />
+            </div>
+          </div>
+
+          <section class="lane-card" aria-label="NPC scene">
+
+            <div class="lane-header">
+              <span class="lane-title">NPC</span>
+              <span class="lane-subtitle">AI answer runner</span>
+            </div>
+            <div class="jump-arena jump-arena-npc">
+              <div class="path path-npc">
+                <div class="step" data-index="1"></div>
+                <div class="step" data-index="2"></div>
+                <div class="step" data-index="3"></div>
+                <div class="step" data-index="4"></div>
+                <div class="step" data-index="5"></div>
+                <div class="step" data-index="6"></div>
+                <div class="step" data-index="7"></div>
+                <div class="step" data-index="8"></div>
+                <div class="step" data-index="9"></div>
+                <div class="step" data-index="10"></div>
+              </div>
+                            <div class="bear-anchor bear-anchor-npc">
+                <img class="bear character-npc" src="./bad_bear.png" alt="NPC bear" />
+                <div class="bear-sprite character-npc-sprite"></div>
+              </div>
+
+            </div>
+          </section>
+        </div>
+
+        <section class="control-dock" aria-label="Question and numpad in scene">
+                    <div class="question-text" aria-live="polite">
+            <span id="question-a">1</span>
+            <span id="question-op">+</span>
+            <span id="question-b">1</span>
+            <span>=</span>
+            <span id="answer-display" class="answer-display">?</span>
+          </div>
+          <div class="instruction-text">
+            Use numpad to answer. Press OK. SPACE makes your bear hop.
+          </div>
+
+          <div class="input-row">
+            <button class="action-button clear-button" type="button">Clear</button>
+            <button class="action-button submit-button" type="button">OK</button>
+          </div>
+
+          <div class="keypad" aria-label="Number keypad">
+            <button type="button" class="key" data-digit="1">1</button>
+            <button type="button" class="key" data-digit="2">2</button>
+            <button type="button" class="key" data-digit="3">3</button>
+            <button type="button" class="key" data-digit="4">4</button>
+            <button type="button" class="key" data-digit="5">5</button>
+            <button type="button" class="key" data-digit="6">6</button>
+            <button type="button" class="key" data-digit="7">7</button>
+            <button type="button" class="key" data-digit="8">8</button>
+            <button type="button" class="key" data-digit="9">9</button>
+            <button type="button" class="key" data-digit="0">0</button>
+          </div>
+
+          <div class="feedback" id="feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="countdown-overlay" id="countdown-overlay" hidden>
+          <div class="countdown-card">
+            <div class="countdown-label">Next question in</div>
+            <div class="countdown-value" id="countdown-value">3</div>
+          </div>
+        </section>
+      </main>
+
+      <section class="finish-overlay" id="finish-overlay" hidden>
+        <div class="finish-box">
+          <h2 id="finish-title">Match Complete</h2>
+          <p id="finish-message"></p>
+          <button id="play-again-button" class="action-button" type="button">
+            Play again
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

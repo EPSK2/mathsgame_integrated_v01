@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>testing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="game-shell">
+      <header class="ui-top-header" aria-label="Top controls">
+        <a class="ui-home-button" href="./menu_2.html" aria-label="Go to home screen">
+          <svg class="ui-home-icon" viewBox="0 0 100 100" role="img" aria-hidden="true" focusable="false">
+            <polygon points="25,2 75,2 98,25 98,75 75,98 25,98 2,75 2,25" fill="#f5bf22" stroke="#6b5200" stroke-width="6" />
+            <polygon points="18,18 82,18 82,82 18,82" fill="#ffd85a" opacity="0.45" />
+            <path d="M50 27 70 45v25H57V56H43v14H30V45z" fill="#5a3c00" />
+          </svg>
+        </a>
+      </header>
+
+      <section class="ui-battle-strip" aria-label="Round status and progress">
+        <div class="ui-round-badge ui-round-badge-good">
+          <img class="ui-round-head" src="./good_head.png" alt="Good side head" />
+        </div>
+
+        <div class="ui-score-box" id="left-score-box">0</div>
+
+        <div class="ui-player-progress" data-player="left">
+          <div class="ui-player-progress-track" id="left-progress-track">
+            <div class="ui-player-progress-fill ui-player-progress-fill-left" id="left-progress-fill"></div>
+            <div class="ui-progress-particles" data-particle-layer="left" aria-hidden="true"></div>
+            <img
+              id="progress-good-flag"
+              class="ui-progress-flag ui-progress-good-flag"
+              src="./progress_good_flag.png"
+              alt="Good flag"
+            />
+          </div>
+        </div>
+
+        <div class="ui-strip-gap" aria-hidden="true"></div>
+
+        <div class="ui-timer-bar" aria-label="Round timer">
+          <span class="ui-timer-value" id="round-timer">60</span>
+        </div>
+
+        <div class="ui-strip-gap" aria-hidden="true"></div>
+
+        <div class="ui-player-progress" data-player="right">
+          <div class="ui-player-progress-track" id="right-progress-track">
+            <div class="ui-player-progress-fill ui-player-progress-fill-right" id="right-progress-fill"></div>
+            <div class="ui-progress-particles" data-particle-layer="right" aria-hidden="true"></div>
+            <img
+              id="progress-bad-flag"
+              class="ui-progress-flag ui-progress-bad-flag"
+              src="./progress_bad_flag.png"
+              alt="Bad flag"
+            />
+          </div>
+        </div>
+
+        <div class="ui-score-box" id="right-score-box">0</div>
+
+        <div class="ui-round-badge ui-round-badge-bad">
+          <img class="ui-round-head" src="./bad_head.png" alt="Bad side head" />
+        </div>
+      </section>
+
+      <main class="ui-playboard" aria-label="Two side question and numpad layout">
+        <section class="ui-side" data-side="left" aria-label="Left player side">
+          <div class="ui-left-layout">
+            <div class="ui-question-box">
+              <div class="ui-question-prompt">
+                <div class="ui-question-value" id="left-question">? + ?</div>
+                <div class="ui-answer-box" id="left-answer">?</div>
+              </div>
+            </div>
+
+            <div class="ui-panel-box">
+              <div class="ui-keypad" aria-label="Left numpad">
+                <button type="button" class="key" data-side="left" data-digit="1">1</button>
+                <button type="button" class="key" data-side="left" data-digit="2">2</button>
+                <button type="button" class="key" data-side="left" data-digit="3">3</button>
+                <button type="button" class="key" data-side="left" data-digit="4">4</button>
+                <button type="button" class="key" data-side="left" data-digit="5">5</button>
+                <button type="button" class="key" data-side="left" data-digit="6">6</button>
+                <button type="button" class="key" data-side="left" data-digit="7">7</button>
+                <button type="button" class="key" data-side="left" data-digit="8">8</button>
+                <button type="button" class="key" data-side="left" data-digit="9">9</button>
+                <button type="button" class="key" data-side="left" data-action="clear">↺</button>
+                <button type="button" class="key" data-side="left" data-digit="0">0</button>
+                <button type="button" class="key" data-side="left" data-action="submit">🗹</button>
+              </div>
+            </div>
+
+            <div class="ui-bear-column" aria-label="Left vertical bear column">
+              <img class="ui-bear-stand" src="./good_bear_1_stand.png" alt="Left standing bear" />
+            </div>
+          </div>
+        </section>
+
+        <section class="ui-side" data-side="right" aria-label="Right player side">
+          <div class="ui-right-layout">
+            <div class="ui-bear-column" aria-label="Right vertical bear column">
+              <img class="ui-bear-stand" src="./bad_bear_stand.png" alt="Right standing bear" />
+            </div>
+
+            <div class="ui-question-box">
+              <div class="ui-question-prompt">
+                <div class="ui-question-value" id="right-question">? + ?</div>
+                <div class="ui-answer-box" id="right-answer"></div>
+              </div>
+            </div>
+
+            <div class="ui-panel-box">
+              <div class="ui-keypad" aria-label="Right numpad">
+                <button type="button" class="key" data-side="right" data-digit="1">1</button>
+                <button type="button" class="key" data-side="right" data-digit="2">2</button>
+                <button type="button" class="key" data-side="right" data-digit="3">3</button>
+                <button type="button" class="key" data-side="right" data-digit="4">4</button>
+                <button type="button" class="key" data-side="right" data-digit="5">5</button>
+                <button type="button" class="key" data-side="right" data-digit="6">6</button>
+                <button type="button" class="key" data-side="right" data-digit="7">7</button>
+                <button type="button" class="key" data-side="right" data-digit="8">8</button>
+                <button type="button" class="key" data-side="right" data-digit="9">9</button>
+                <button type="button" class="key" data-side="right" data-action="clear">↺</button>
+                <button type="button" class="key" data-side="right" data-digit="0">0</button>
+                <button type="button" class="key" data-side="right" data-action="submit">🗹</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <section class="ui-countdown-overlay" id="startup-countdown" aria-live="assertive">
+        <div class="ui-countdown-value" id="startup-countdown-value">3</div>
+      </section>
+
+      <section class="ui-end-overlay" id="end-overlay" aria-live="polite" hidden>
+        <div class="ui-end-header-row" aria-hidden="true"></div>
+        <div class="ui-end-bear-row" aria-label="End result bears">
+          <div class="ui-end-bear" data-static-src="./good_bear_1_stand.png"></div>
+          <div class="ui-end-bear" data-static-src="./bad_bear_stand.png"></div>
+        </div>
+        <div class="ui-end-footer-actions" aria-label="End round actions">
+          <div class="ui-end-action-buttons">
+            <button type="button" class="ui-end-action-button" id="end-action-restart" aria-label="Restart game">↺</button>
+            <button type="button" class="ui-end-action-button" id="end-action-home" aria-label="Back to home">𖠿</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="ui-end-action-overlay ui-pass-turn-overlay" id="pass-turn-overlay" aria-label="Pass and play handover" hidden>
+        <div class="ui-end-action-buttons ui-pass-turn-buttons">
+          <button type="button" class="ui-end-action-button ui-pass-turn-button" id="pass-turn-continue" aria-label="Continue next turn">▶</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
