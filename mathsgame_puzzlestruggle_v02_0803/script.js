@@ -1550,6 +1550,8 @@
   function applyPassTurnSwitch(nextSide) {
     state.activePassSide = nextSide;
     state.passTurnTickLastMs = Date.now();
+    state[nextSide === "right" ? "rightQuestionAnimating" : "leftQuestionAnimating"] = false;
+    renderQuestionCard(nextSide, false);
     renderTimer(Math.ceil(getPassRemainingMs(state.activePassSide) / 1000));
     syncPassTurnInputState();
   }
@@ -2823,6 +2825,9 @@
         state[indexKey] += 1;
         syncSideQuestion(side);
         renderQuestionCard(side, true);
+      } else {
+        state[indexKey] += 1;
+        syncSideQuestion(side);
       }
 
       renderAnswers();

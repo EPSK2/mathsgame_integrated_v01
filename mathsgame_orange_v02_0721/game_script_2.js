@@ -156,6 +156,9 @@ let giftButtonsLocked = false;
 const essentialGameImageUrls = [
   "./orange_fruit_claw_open.png",
   "./orange_fruit_claw_closed.png",
+  "./fairy-flying_on_the_spot.png",
+  "./fairy-flying_around.png",
+  "./fairy-suprised.png",
   "./orange_bear_keyless-catcher.png",
   "./orange_bear-jumping_waving_hands.png",
   "./golden_key.png",
@@ -2211,15 +2214,20 @@ function initClawMachinePNG() {
     const clawRotationRad =
       swingAngle +
       (verticalPhase === "close" && shouldRotateClawDuringClose
-        ? clawCloseRotationDirection * (Math.PI / 18)
+        ? clawCloseRotationDirection * (Math.PI / 12)
         : 0);
+
+    // Minimal visual fix: slightly reduce scale while rotating so the
+    // claw edges do not get clipped by frame bounds.
+    const clawVisualScale = Math.abs(clawRotationRad) > 0.001 ? 0.96 : 1;
 
     // Apply transform including vertical offset.
     img.style.transform =
       `translateX(-50%) ` +
       `translateX(${currentRootX}px) ` +
       `translateY(${currentOffsetY}px) ` +
-      `rotate(${clawRotationRad}rad)`;
+      `rotate(${clawRotationRad}rad) ` +
+      `scale(${clawVisualScale})`;
 
     // Update or create the vertical rod line that connects the steel bar
 
@@ -3641,6 +3649,10 @@ function animateQuestionProgressIncrement() {
       }
     }
 
+    if (typeof window.playVictorySuccessVoice === "function") {
+      window.playVictorySuccessVoice();
+    }
+
     await waitMs(Math.round(950 * transitionSlowdown));
     if (questionProgressToken) {
       questionProgressToken.style.setProperty("--question-progress-token-scale", "1");
@@ -4675,7 +4687,8 @@ const FAIRY_FLYING_AROUND_PNG = "./fairy-flying_around.png";
 const FAIRY_SUPRISED_PNG = "./fairy-suprised.png";
 const FAIRY_SUPRISED_SEQUENCE = [10, 11, 12, 13, 14, 15, 14, 13, 12, 11];
 const FAIRY_LOCUS = [5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4];
-const FAIRY_SUCCESS_FLIGHT_DURATION_MS = 4000;
+const FAIRY_SUCCESS_FLIGHT_DURATION_MS = 1000;
+const FAIRY_SUCCESS_FADE_OUT_DURATION_MS = 350;
 const FAIRY_SUCCESS_CIRCLE_RADIUS_VH = 40;
 const FAIRY_SUCCESS_INTERSECTION_Y = 0.7;
 const FAIRY_AURA_BLUR_PX = 30;
@@ -5244,11 +5257,18 @@ function handleFairyOptionClick(btn) {
       window.playClawAttemptSuccess();
     }
 
-    // After the animation, treat this as a success for the current question.
-    setTimeout(() => {
-      handleFairyRoundSuccess();
-    }, 3000);
+    playFairySuccessFlight()
+      .catch(() => {})
+      .then(() => {
+        return fadeOutFairyThenStartClawForMcSuccess();
+      });
     } else {
+    const selectedValue = parseInt(btn.dataset.value || "", 10);
+    if (Number.isFinite(selectedValue) && typeof activeGiftValue === "number") {
+      const { rangeMin, rangeMax } = getFairyRange();
+      saveAttemptToHistory(activeGiftValue, selectedValue, rangeMin, rangeMax);
+    }
+
     // Wrong choice: shrink to 10vh and turn red over 2 seconds.
     btn.dataset.lockedWrong = "true";
     btn.style.backgroundColor = "#fecaca"; // light red
@@ -5263,6 +5283,8 @@ function handleFairyOptionClick(btn) {
         if (typeof window.playClawAttemptFail === "function") {
       window.playClawAttemptFail();
     }
+
+    handleWrongAttemptForHints();
 
     // Immediately after the mechanical claw fail sound, play the
     // ultimate fairy fail voice.
@@ -5285,6 +5307,78 @@ function handleFairyOptionClick(btn) {
     }, 2000);
   }
 
+}
+
+function fadeOutFairyThenStartClawForMcSuccess() {
+  return new Promise((resolve) => {
+    const launchClawSequence = () => {
+      stopFairySurprisedReaction();
+      if (fairyAudio) {
+        try {
+          fairyAudio.pause();
+          fairyAudio.currentTime = 0;
+        } catch (_) {}
+      }
+      if (fairyGreetingAudio) {
+        try {
+          fairyGreetingAudio.pause();
+          fairyGreetingAudio.currentTime = 0;
+        } catch (_) {}
+      }
+      if (fairySpriteAnimator) {
+        fairySpriteAnimator.stop();
+      }
+      if (fairyOptionsContainer) {
+        fairyOptionsContainer.style.display = "none";
+      }
+
+      if (typeof activeGiftValue !== "number") {
+        handleFairyRoundSuccess(false);
+        resolve();
+        return;
+      }
+
+      giftPanelState.phase = "moving";
+      if (giftControlPanel) {
+        giftControlPanel.classList.remove("gift-panel-prompt");
+      }
+      setGiftKeyboardEnabled(false, true);
+      setGiftPanelButtonsLocked(true);
+
+      if (typeof window.controlClawPosition === "function") {
+        window.controlClawPosition(activeGiftValue);
+      }
+      if (typeof window.debugClawDown === "function") {
+        window.debugClawDown();
+      }
+
+      resolve();
+    };
+
+    if (!fairySpriteEl) {
+      launchClawSequence();
+      return;
+    }
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      fairySpriteEl.removeEventListener("transitionend", onTransitionEnd);
+      launchClawSequence();
+    };
+    const onTransitionEnd = (event) => {
+      if (event && event.target !== fairySpriteEl) {
+        return;
+      }
+      finish();
+    };
+
+    fairySpriteEl.addEventListener("transitionend", onTransitionEnd);
+    fairySpriteEl.style.transition = `opacity ${FAIRY_SUCCESS_FADE_OUT_DURATION_MS}ms ease-out`;
+    fairySpriteEl.style.opacity = "0";
+    window.setTimeout(finish, FAIRY_SUCCESS_FADE_OUT_DURATION_MS + 120);
+  });
 }
 
 
@@ -6293,8 +6387,6 @@ function startFinalVictoryCelebrationTimeline(starCount, totalAttempts) {
         if (typeof window.playMoreStarVoice === "function") {
           window.playMoreStarVoice();
         }
-      } else if (typeof window.playVictorySuccessVoice === "function") {
-        window.playVictorySuccessVoice();
       }
     });
   });
@@ -6477,6 +6569,21 @@ function animateFinalVictoryStars(starCount, onComplete) {
   });
 }
 
+let victoryActionInFlight = false;
+let restartRunGeneration = 0;
+
+function setVictoryButtonsBusy(isBusy) {
+  const primaryBtn = document.getElementById("victoryPrimaryButton");
+  const secondaryBtn = document.getElementById("victorySecondaryButton");
+
+  if (primaryBtn) {
+    primaryBtn.disabled = isBusy;
+  }
+  if (secondaryBtn) {
+    secondaryBtn.disabled = isBusy;
+  }
+}
+
 function showVictoryModal(isFinalLevel, completedLevelIndex, totalLevels, totalAttempts) {
   if (!victoryModal) return;
 
@@ -6555,6 +6662,7 @@ function showVictoryModal(isFinalLevel, completedLevelIndex, totalLevels, totalA
       primaryBtn.title = "再次由第一關開始挑戰";
       primaryBtn.onclick = handleRestartRunClick;
       primaryBtn.className = "victory-button ui-end-action-button";
+      primaryBtn.disabled = false;
     }
 
     if (secondaryBtn) {
@@ -6565,6 +6673,7 @@ function showVictoryModal(isFinalLevel, completedLevelIndex, totalLevels, totalA
       secondaryBtn.onclick = handleReturnToMenuClick;
       secondaryBtn.className = "victory-button ui-end-action-button";
       secondaryBtn.classList.remove("hidden");
+      secondaryBtn.disabled = false;
     }
 
     victoryModal.classList.remove("hidden");
@@ -6592,6 +6701,7 @@ function showVictoryModal(isFinalLevel, completedLevelIndex, totalLevels, totalA
       primaryBtn.title = "下一關";
       primaryBtn.onclick = handleNextLevelClick;
       primaryBtn.className = "victory-button ui-end-action-button";
+      primaryBtn.disabled = false;
     }
 
     if (secondaryBtn) {
@@ -6609,11 +6719,6 @@ function showVictoryModal(isFinalLevel, completedLevelIndex, totalLevels, totalA
         victoryModal.classList.add("is-visible");
       }
     });
-
-    // Play a random success voice variant when the victory modal appears.
-    if (typeof window.playVictorySuccessVoice === "function") {
-      window.playVictorySuccessVoice();
-    }
   }
 }
 
@@ -6648,22 +6753,23 @@ async function advanceToNextLevelWithoutOverlay() {
 }
 
 async function handleNextLevelClick() {
+  if (victoryActionInFlight) {
+    return;
+  }
+  victoryActionInFlight = true;
+  setVictoryButtonsBusy(true);
+
   if (typeof window.stopVictorySuccessVoice === "function") {
     window.stopVictorySuccessVoice();
   }
 
-  hideVictoryModal();
-
-  if (typeof window.playClawSuccessBearExit === "function") {
-    await window.playClawSuccessBearExit();
+  try {
+    hideVictoryModal();
+    await advanceToNextLevelWithoutOverlay();
+  } finally {
+    victoryActionInFlight = false;
+    setVictoryButtonsBusy(false);
   }
-
-  if (window.gameCookie && typeof window.gameCookie.startLevelTimer === "function") {
-    window.gameCookie.startLevelTimer();
-  }
-
-  // Clear any existing hint ticks/labels so the next level starts fresh.
-  await advanceToNextLevelWithoutOverlay();
 }
 
 
@@ -7380,31 +7486,49 @@ function getSmartWrongOption(target, currentRoundGuessesParam, rangeMin, rangeMa
 
 
 async function handleRestartRunClick() {
+  if (victoryActionInFlight) {
+    return;
+  }
+  victoryActionInFlight = true;
+  const runGeneration = ++restartRunGeneration;
+  setVictoryButtonsBusy(true);
+
   if (typeof window.stopVictorySuccessVoice === "function") {
     window.stopVictorySuccessVoice();
   }
 
-  hideVictoryModal();
+  try {
+    hideVictoryModal();
 
-  if (typeof window.playClawSuccessBearExit === "function") {
-    await window.playClawSuccessBearExit();
-  }
-
-  resetQuestionProgress();
-
-  const { rangeMin, rangeMax, clampTolerance } = getCurrentRangeAndTolerance();
-
-  if (window.gameCookie) {
-    if (typeof window.gameCookie.resetRunStateForNewAttempt === "function") {
-      window.gameCookie.resetRunStateForNewAttempt(rangeMax, clampTolerance, rangeMin);
+    if (typeof window.playClawSuccessBearExit === "function") {
+      await window.playClawSuccessBearExit();
     }
-    if (typeof window.gameCookie.initRunState === "function") {
-      window.gameCookie.initRunState(rangeMax, clampTolerance, rangeMin);
+
+    if (runGeneration !== restartRunGeneration) {
+      return;
+    }
+
+    resetQuestionProgress();
+
+    const { rangeMin, rangeMax, clampTolerance } = getCurrentRangeAndTolerance();
+
+    if (window.gameCookie) {
+      if (typeof window.gameCookie.resetRunStateForNewAttempt === "function") {
+        window.gameCookie.resetRunStateForNewAttempt(rangeMax, clampTolerance, rangeMin);
+      }
+      if (typeof window.gameCookie.initRunState === "function") {
+        window.gameCookie.initRunState(rangeMax, clampTolerance, rangeMin);
+      }
+    }
+
+    resetHintState();
+    spawnRandomGiftBox();
+  } finally {
+    if (runGeneration === restartRunGeneration) {
+      victoryActionInFlight = false;
+      setVictoryButtonsBusy(false);
     }
   }
-
-  resetHintState();
-  spawnRandomGiftBox();
 }
 
 

@@ -1085,13 +1085,13 @@ body {
 }
 
 .ui-end-action-button {
-  width: min(40vw, 40vh);
-  height: min(40vw, 40vh);
+  width: min(20vw, 20vh);
+  height: min(20vw, 20vh);
   border: 0;
   border-radius: 1rem;
   background: rgba(0, 0, 0, 0.9);
   color: #ffffff;
-  font-size: 20vw;
+  font-size: 10vw;
   font-weight: 900;
   line-height: 1;
   cursor: pointer;
@@ -1103,15 +1103,15 @@ body {
 }
 
 .ui-end-footer-actions .ui-end-action-button {
-  width: min(15vw, 15vh);
-  height: min(15vw, 15vh);
-  border: 0.22rem solid rgba(255, 255, 255, 0.38);
-  border-radius: 1.2rem;
-  background: rgba(0, 0, 0, 0.82);
-  font-size: min(9.375vw, 9.375vh);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: min(15vw, 15vh) !important;
+  height: min(15vw, 15vh) !important;
+  border: 0.22rem solid rgba(255, 255, 255, 0.38) !important;
+  border-radius: 1.2rem !important;
+  background: rgba(0, 0, 0, 0.82) !important;
+  font-size: min(9.375vw, 9.375vh) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .victory-button {

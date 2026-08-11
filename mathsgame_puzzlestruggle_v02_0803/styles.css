@@ -924,6 +924,7 @@ body.mode-multiplayer .ui-round-badge-bad {
 .ui-end-tie-celebration {
   position: absolute;
   left: 50%;
+  bottom: calc(20dvh + 10dvh + 15dvh);
   transform: translateX(-50%);
   width: var(--end-bear-render-size);
   height: var(--end-bear-render-size);
