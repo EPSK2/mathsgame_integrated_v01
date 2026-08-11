@@ -1,0 +1,85 @@
+<section class="ui-end-overlay is-active is-bears-visible is-ranks-visible" id="end-overlay" aria-live="polite" style="--end-bear-scale: 1.5;">
+    <div class="ui-end-header-row" aria-hidden="true"></div>
+    <div class="ui-end-footer-actions" aria-label="End round actions">
+        <div class="ui-end-action-buttons">
+        <button type="button" class="ui-end-action-button" id="end-action-restart" aria-label="Restart game">↺</button>
+        <button type="button" class="ui-end-action-button" id="end-action-home" aria-label="Back to home">𖠿</button>
+        </div>
+    </div>
+</section>
+
+.ui-end-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    --end-bear-size: 40vh;
+    --end-bear-scale: 1;
+    --end-bear-render-size: calc(var(--end-bear-size) * var(--end-bear-scale));
+    opacity: 0;
+    pointer-events: none;
+    background: rgba(0, 83, 83, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: opacity 4s ease;
+}
+ui-end-header-row{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 15vh;
+    background-image: linear-gradient(45deg, rgba(180, 250, 255, 0.8) 25%, transparent 25%, transparent 75%, rgba(180, 250, 255, 0.8) 75%, rgba(180, 250, 255, 0.8)),
+    linear-gradient(45deg, rgba(92, 232, 240, 0.82) 25%, transparent 25%, transparent 75%, rgba(92, 232, 240, 0.82) 75%, rgba(92, 232, 240, 0.82));
+    background-position: 0 0, 2.5vh 2.5vh;
+    background-size: 5vh 5vh;
+}
+
+
+.ui-end-footer-actions {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 3vh;
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+}
+
+.ui-end-footer-actions .ui-end-action-buttons {
+    width: auto;
+    gap: clamp(1.2rem, 4vw, 3rem);
+    justify-content: center;
+}
+
+.ui-end-action-buttons {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+
+.ui-end-footer-actions .ui-end-action-button {
+    width: min(15vw, 15vh);
+    height: min(15vw, 15vh);
+    border: 0.22rem solid rgba(255, 255, 255, 0.38);
+    border-radius: 1.2rem;
+    background: rgba(0, 0, 0, 0.82);
+    font-size: min(9.375vw, 9.375vh);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ui-end-action-button {
+    width: min(40vw, 40vh);
+    height: min(40vw, 40vh);
+    border: 0;
+    border-radius: 1rem;
+    background: rgba(0, 0, 0, 0.9);
+    color: #ffffff;
+    font-size: 20vw;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+}

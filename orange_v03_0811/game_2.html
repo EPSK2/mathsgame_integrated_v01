@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, shrink-to-fit=no" />
+    <title>香橙熊數線尋寶 - 2.5D 叢林背景</title>
+  <link rel="stylesheet" href="./game_style_2.css" />
+  <link rel="stylesheet" href="./prep_style.css" />
+  <!-- 使用 Tailwind CDN 以支援原本的樣式類別 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="bgImageLayer" aria-hidden="true">
+      <img id="bgImage" src="./ug_orange_wider.png" alt="" />
+    </div>
+
+    <!-- 2.5D Jungle Canvas Background -->
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="questionProgress" class="question-progress" aria-hidden="true">
+    <div class="question-progress-track">
+      <div id="questionProgressFill" class="question-progress-fill">
+        <div class="question-progress-fill-particles"></div>
+      </div>
+    </div>
+    <div class="question-progress-circles">
+      <div class="question-progress-circle" data-step="1"><div class="question-progress-circle-fill"></div></div>
+      <div class="question-progress-circle" data-step="2"><div class="question-progress-circle-fill"></div></div>
+      <div class="question-progress-circle" data-step="3"><div class="question-progress-circle-fill"></div></div>
+      <div class="question-progress-circle" data-step="4"><div class="question-progress-circle-fill"></div></div>
+      <div class="question-progress-circle" data-step="5"><div class="question-progress-circle-fill"></div></div>
+      <div class="question-progress-circle" data-step="6"><div class="question-progress-circle-fill"></div></div>
+    </div>
+    <div id="questionProgressToken" class="question-progress-token" aria-hidden="true">
+      <img src="./orange_head.png" alt="" />
+      <span class="question-progress-token-arrow">&#9658;</span>
+    </div>
+  </div>
+
+
+    <!-- Black steel bar and claw machine clamp -->
+  <div id="clawBar"></div>
+  <img id="leftCog" class="claw-cog" src="./cog.png" alt="" aria-hidden="true" />
+  <img id="rightCog" class="claw-cog" src="./cog.png" alt="" aria-hidden="true" />
+        <img
+    id="clawMachineImage"
+      src="./orange_fruit_claw_open.png"
+    alt="Claw machine clamp"
+  />
+  <!-- Gift position input panel -->
+  <div
+    id="giftControlPanel"
+    class="gift-control-panel hidden"
+    aria-hidden="true"
+  >
+    <div class="gift-keyboard-number">
+      <div id="giftMonitor" class="gift-monitor gift-monitor-tall">
+        <div
+          id="giftMonitorMessage"
+          class="gift-monitor-message"
+        ></div>
+        <div
+          id="giftMonitorInput"
+          class="gift-monitor-input"
+        ></div>
+      </div>
+
+      <div class="gift-keyboard-row">
+        <button
+          id="giftKey0"
+          class="gift-key-btn gift-key-digit"
+          type="button"
+          data-key="0"
+        >
+          0
+        </button>
+        <button
+          class="gift-key-btn gift-key-digit"
+          type="button"
+          data-key="1"
+        >
+          1
+        </button>
+        <button
+          class="gift-key-btn gift-key-digit"
+          type="button"
+          data-key="2"
+        >
+          2
+        </button>
+        <button
+          class="gift-key-btn gift-key-digit"
+          type="button"
+          data-key="3"
+        >
+          3
+        </button>
+        <button
+          class="gift-key-btn gift-key-digit"
+          type="button"
+          data-key="4"
+        >
+          4
+        </button>
+        <button
+          id="giftKeyReset"
+          class="gift-key-btn"
+          type="button"
+          style="background-color: #f97316;"
+        >
+          ↺
+        </button>
+      </div>
+
+      <div class="gift-keyboard-row">
+        <button
+          class="gift-key-btn gift-key-digit"
+          type="button"
+          data-key="5"
+        >
+          5
+        </button>
+        <button
+          class="gift-key-btn gift-key-digit"
+          type="button"
+          data-key="6"
+        >
+          6
+        </button>
+        <button
+          class="gift-key-btn gift-key-digit"
+          type="button"
+          data-key="7"
+        >
+          7
+        </button>
+        <button
+          class="gift-key-btn gift-key-digit"
+          type="button"
+          data-key="8"
+        >
+          8
+        </button>
+        <button
+          class="gift-key-btn gift-key-digit"
+          type="button"
+          data-key="9"
+        >
+          9
+        </button>
+        <button
+          id="giftKeyMove"
+          class="gift-key-btn"
+          type="button"
+          style="background-color: #22c55e;"
+        >
+          ✓
+        </button>
+      </div>
+    </div>
+  </div>
+
+    <div id="gameShell" class="game-shell max-w-3xl mx-auto">
+    <header class="game-header-spacer ui-top-header" aria-label="Top controls">
+      <button
+        id="menuArrow"
+        class="ui-home-button"
+        onclick="returnToMenu()"
+        type="button"
+        aria-label="Go to home screen"
+      >
+        <svg class="ui-home-icon" viewBox="0 0 100 100" role="img" aria-hidden="true" focusable="false">
+          <polygon points="25,2 75,2 98,25 98,75 75,98 25,98 2,75 2,25" fill="#ff8c1a" stroke="#8a4b00" stroke-width="6"></polygon>
+          <polygon points="18,18 82,18 82,82 18,82" fill="#ffb347" opacity="0.45"></polygon>
+          <path d="M50 27 70 45v25H57V56H43v14H30V45z" fill="#5a2f00"></path>
+        </svg>
+      </button>
+    </header>
+
+    <!-- 主菜單容器：新版流程中不顯示任何內容，僅作結構及後備使用 -->
+    <div id="mainMenu" class="hidden"></div>
+
+        <!-- 遊戲區：登入及主選單後直接顯示 -->
+    <div id="gameArea">
+
+        <!-- 結果顯示 -->
+
+      <div
+        id="result"
+        class="text-xl md:text-3xl custom-font-bold text-center mb-6"
+      ></div>
+
+
+      <!-- 寶箱 -->
+      <div id="treasure" class="hidden mb-6">
+        <div id="chest" class="w-40 h-28 mx-auto relative chest">
+          <div
+            class="chest-lid w-40 h-12 bg-gradient-to-b from-yellow-300 to-yellow-400 rounded-t-3xl border-4 border-orange-400 absolute top-0 flex items-center justify-center"
+          >
+            <div
+              class="w-8 h-6 bg-yellow-600 rounded-full border-2 border-yellow-700"
+            ></div>
+          </div>
+          <div
+            class="w-40 h-16 bg-gradient-to-b from-orange-300 to-orange-400 rounded-b-3xl border-4 border-orange-500 absolute bottom-0 flex items-center justify-center"
+          >
+            <div class="text-2xl" id="treasureContent">🎁</div>
+          </div>
+        </div>
+        <p id="outfitName" class="text-lg custom-font-bold text-amber-700 mt-3"></p>
+      </div>
+
+      <div
+        class="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-6"
+      >
+        <!-- 對話框 -->
+        <div
+          class="speech-bubble rounded-3xl p-4 max-w-xs order-2 md:order-1"
+        >
+          <p id="speech" class="text-lg md:text-xl">
+            
+          </p>
+        </div>
+    </div>
+  </div>
+
+  </div>
+
+        <!-- 勝利模態 -->
+  <div id="victoryModal" class="modal-overlay hidden" aria-live="polite">
+    <div class="ui-end-header-row" aria-hidden="true"></div>
+    <div class="modal-content">
+      <div id="victoryTextBlock" class="victory-text-block">
+        <p id="victoryMessage" class="victory-message mb-8"></p>
+        <p id="victoryHeadline" class="victory-message mb-2 hidden"></p>
+        <p id="victorySubheadline" class="victory-message mb-4 hidden"></p>
+      </div>
+
+      <div id="victoryCelebrationArea" class="victory-celebration-area hidden" aria-hidden="true">
+        <div id="victoryBearSprite" class="victory-bear-sprite" aria-hidden="true"></div>
+        <div id="victoryStarsContainer" class="victory-stars hidden" aria-hidden="true"></div>
+        <p id="victoryExtraText" class="victory-extra-text hidden" aria-hidden="true">
+          <span id="victoryExtraTextValue">0次</span>
+          <span id="victoryExtraTextStar" class="victory-extra-text-star" aria-hidden="true"></span>
+        </p>
+      </div>
+
+      <div id="victoryButtons" class="victory-buttons" aria-label="End round actions">
+        <div class="ui-end-action-buttons">
+          <button
+            id="victoryPrimaryButton"
+            type="button"
+            class="victory-button ui-end-action-button"
+          ></button>
+          <button
+            id="victorySecondaryButton"
+            type="button"
+            class="victory-button ui-end-action-button hidden"
+          ></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div
+    id="bottomModeArrowStrip"
+    class="flex items-center justify-center"
+    aria-hidden="true"
+    style="
+      position: fixed;
+      align-items: center;
+      gap: 0.5vw;
+    "
+  >
+    <!-- Treat the number line as a single SVG element between two simple labels -->
+    <!--<span
+      class="text-3xl"
+      style="color:white; display: flex; align-items: center; line-height: 1; text-shadow: 2px 2px 0 rgba(255,255,255,0.6);"
+    >
+      小
+    </span>-->
+
+    <svg
+      id="numberLineSVG"
+      viewBox="0 0 5000 200"
+      class="w-full h-auto"
+      style="display: block;"
+    >
+            <!-- Depth layer: arrow spans almost the full SVG width for a longer visual axis -->
+      <line
+        id="mainAxisBack"
+        x1="50"
+        y1="84"
+        x2="4950"
+        y2="84"
+        stroke="rgba(150,150,150,0.55)"
+        stroke-width="24"
+      />
+      <!-- Back arrowheads (manual polygons, no markers) -->
+      <!-- <polygon
+        id="mainAxisBackLeftArrow"
+        points="10 84, 110 4, 110 164"
+        fill="rgba(150,150,150,0.55)"
+      />
+        points="4990 80, 4950 72, 4950 88"
+        fill="white"
+      />!-->
+
+      <!-- Dynamic Tick Marks and Labels will be injected here by game_script.js -->
+      <g id="ticksGroupBack"></g>
+      <g id="labelsGroupBack"></g>
+      <g id="ticksGroup"></g>
+
+    </svg>
+
+    <svg
+      id="numberLineLabelsSVG"
+      viewBox="0 0 5000 200"
+      class="w-full h-auto"
+      style="display: block;"
+    >
+      <g id="labelsGroup"></g>
+    </svg>
+
+    <!-- <span
+      class="text-5xl"
+      style="color:white; display: flex; align-items: center; line-height: 1; text-shadow: 3px 3px 0 rgba(255,255,255,0.6);"
+    >
+      大
+    </span> -->
+  </div>
+
+  
+
+    <script src="./game_cookie.js"></script>
+  <script src="./prep_script.js"></script>
+  <script src="./game_script_2.js"></script>
+</body>
+</html>

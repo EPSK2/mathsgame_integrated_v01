@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Puzzle Struggle Menu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="style_2.css" />
+  </head>
+  <body>
+    <main class="menu2-shell" aria-label="Game setup menu">
+      <h1 class="menu2-title">數之擂台</h1>
+      <section class="menu2-stage is-active" data-stage="player-count" aria-label="Choose player count">
+        <div class="menu2-button-stack">
+          <button type="button" class="menu2-button" data-player-count="1">1P <img src="./good_head.png" class="menu2-inline-head" alt="" aria-hidden="true" /></button>
+          <button type="button" class="menu2-button" data-player-count="2">2P <img src="./good_head.png" class="menu2-inline-head" alt="" aria-hidden="true" /><img src="./good_head.png" class="menu2-inline-head" alt="" aria-hidden="true" /></button>
+        </div>
+      </section>
+
+      <section class="menu2-stage" data-stage="challenge" aria-label="Choose challenge">
+        <div class="menu2-button-stack">
+          <button type="button" class="menu2-button" data-operation-mode="add">+ 加法 +</button>
+          <button type="button" class="menu2-button" data-operation-mode="sub">- 減法 -</button>
+          <button type="button" class="menu2-button" data-operation-mode="mixed">+ - 加減混合 - +</button>
+        </div>
+      </section>
+
+      <section class="menu2-stage" data-stage="battle-mode" aria-label="Choose multiplayer mode">
+        <div class="menu2-button-stack">
+          <button type="button" class="menu2-button" data-battle-mode="2p"><img src="./good_head.png" class="menu2-inline-head" alt="" aria-hidden="true" />⚡<img src="./good_head.png" class="menu2-inline-head" alt="" aria-hidden="true" /><br><span style="font-size:7.5vh">同時答</span></button>
+          <button type="button" class="menu2-button" data-battle-mode="2p-pass"><img src="./good_head.png" class="menu2-inline-head" alt="" aria-hidden="true" />🔄<img src="./good_head.png" class="menu2-inline-head" alt="" aria-hidden="true" /><br><span style="font-size:7.5vh">輪流答</span></button>
+        </div>
+      </section>
+
+      <section class="menu2-stage" data-stage="difficulty" aria-label="Choose difficulty">
+        <div class="menu2-button-stack">
+          <button type="button" class="menu2-button" data-difficulty="10">Level 1️⃣<br><span style="font-size:7.5vh">10 以内</span></button>
+          <button type="button" class="menu2-button" data-difficulty="18">Level 2️⃣<br><span style="font-size:7.5vh">18 以内</span></button>
+        </div>
+      </section>
+
+      <div class="menu2-back-bar" aria-label="Menu navigation">
+        <button type="button" class="menu2-back-button" id="menu2-back-button" aria-label="Go back" hidden>⬅</button>
+      </div>
+    </main>
+
+    <script src="script_2.js"></script>
+  </body>
+</html>

@@ -1,0 +1,281 @@
+:root {
+  --menu-bg-top: #8ed7ff;
+  --menu-bg-bottom: #235d93;
+  --menu-card: rgba(13, 31, 52, 0.18);
+  --menu-button-top: #fff3c0;
+  --menu-button-bottom: #eda451;
+  --menu-button-ink: #23150f;
+  --menu-shadow: rgba(4, 12, 21, 0.32);
+}
+
+@font-face {
+  font-family: "Nightgazer16 Battle";
+  src: url("./Nightgazer16_battle.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  font-family: "Nightgazer16 Battle", sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  overflow: hidden;
+  background: url("./menu_bg2.png") center/cover no-repeat;
+  color: var(--menu-button-ink);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  border: 5vh solid #550000;
+  pointer-events: none;
+  box-sizing: border-box;
+  z-index: 0;
+}
+
+.menu2-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 4vh 4vw;
+  overflow: hidden;
+}
+
+.menu2-title {
+  position: absolute;
+  top: 2.5vh;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 10vh;
+  line-height: 1;
+  color: #fff7d6;
+  text-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.35);
+  text-align: center;
+  pointer-events: none;
+  background-color: #550000;
+}
+
+.menu2-stage {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90%;
+  max-height: 75vh;
+  min-height: 0;
+  padding: clamp(1rem, 2.2vh, 2rem);
+  border-radius: 2rem;
+  background: var(--menu-card);
+  box-shadow: 0 1.4rem 3rem var(--menu-shadow);
+  backdrop-filter: blur(0.5rem);
+  -webkit-backdrop-filter: blur(0.5rem);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+.menu2-stage.is-active,
+.menu2-stage.is-entering,
+.menu2-stage.is-exiting,
+.menu2-stage.is-entering-back,
+.menu2-stage.is-exiting-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu2-stage.is-active {
+  opacity: 1;
+}
+
+.menu2-stage.is-entering {
+  animation: stageIn 1s ease-out forwards;
+}
+
+.menu2-stage.is-exiting {
+  animation: stageOut 1s ease-in forwards;
+}
+
+.menu2-stage.is-entering-back {
+  animation: stageInBack 1s ease-out forwards;
+}
+
+.menu2-stage.is-exiting-back {
+  animation: stageOutBack 1s ease-in forwards;
+}
+
+.menu2-button-stack {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: clamp(0.7rem, 1.4vh, 1.2rem);
+}
+
+.menu2-button {
+  min-width: 0;
+  min-height: 15vh;
+  width: 60vw;
+  padding: clamp(0.6rem, 1.2vh, 1rem) 2rem;
+  border: 0;
+  background: linear-gradient(180deg, var(--menu-button-top), var(--menu-button-bottom));
+  color: var(--menu-button-ink);
+  font-size: 10vh;
+  font-weight: 900;
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 0.9rem 1.8rem rgba(35, 21, 15, 0.28);
+  cursor: pointer;
+}
+
+.menu2-inline-head {
+  height: 1em;
+  width: auto;
+  vertical-align: -0.08em;
+  margin-inline: 0.05em;
+}
+
+.menu2-button:active {
+  transform: translateY(1px);
+}
+
+.menu2-back-bar {
+  position: absolute;
+  left: 4vw;
+  right: 4vw;
+  bottom: 4vh;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+
+.menu2-back-button {
+  width: min(15vw, 15vh);
+  height: min(15vw, 15vh);
+  border: 0.22rem solid rgba(255, 255, 255, 0.38);
+  border-radius: 1.2rem;
+  background: rgba(0, 0, 0, 0.82);
+  color: #ffffff;
+  font-size: min(9.375vw, 9.375vh);
+  font-weight: 900;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.menu2-back-button:active {
+  transform: scale(0.985);
+}
+
+.menu2-back-button[hidden] {
+  display: none;
+}
+
+.menu2-stage[data-stage="challenge"] .menu2-button {
+  width: 60vw;
+  border-radius: 0;
+  color: #ffffff;
+  text-shadow: 0 0.25rem 0.45rem rgba(0, 0, 0, 0.55);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.menu2-stage[data-stage="challenge"] .menu2-button[data-operation-mode="add"] {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("./treehouse.png");
+}
+
+.menu2-stage[data-stage="challenge"] .menu2-button[data-operation-mode="sub"] {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("./monuments.png");
+}
+
+.menu2-stage[data-stage="challenge"] .menu2-button[data-operation-mode="mixed"] {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("./castle.png");
+}
+
+@keyframes stageOut {
+  from {
+    transform: translate(-50%, -50%) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) translateY(-120vh);
+    opacity: 0;
+  }
+}
+
+@keyframes stageIn {
+  from {
+    transform: translate(-50%, -50%) translateY(120vh);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes stageOutBack {
+  from {
+    transform: translate(-50%, -50%) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) translateY(120vh);
+    opacity: 0;
+  }
+}
+
+@keyframes stageInBack {
+  from {
+    transform: translate(-50%, -50%) translateY(-120vh);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 700px) {
+  .menu2-stage {
+    width: min(86vw, 86vh);
+    max-width: 86vw;
+    max-height: 86vh;
+  }
+
+  .menu2-back-button {
+    width: min(18vw, 18vh);
+    height: min(18vw, 18vh);
+    font-size: min(11vw, 11vh);
+  }
+}
+
+
