@@ -1488,7 +1488,7 @@ function initClawMachinePNG() {
 
   window.debugClawDown = debugClawDown;
 
-    function handleRoundOutcome() {
+    async function handleRoundOutcome() {
       if (hasCaughtGift && caughtGiftEl) {
         // Correct estimation / successful catch: clear current round log so
         // future MC questions only analyse fresh misses.
@@ -1534,17 +1534,15 @@ function initClawMachinePNG() {
           if (typeof window.playTotalVictory === "function") {
             window.playTotalVictory();
           }
-          setTimeout(() => {
-            showVictoryModal(true, completedLevelIndex, totalLevels, totalAttempts);
-          }, 2600);
+          await waitForVictorySuccessVoiceGate();
+          showVictoryModal(true, completedLevelIndex, totalLevels, totalAttempts);
         } else {
           // Middle-level success (not yet the last gift)
           if (typeof window.playMiddleLevelSuccessSfx === "function") {
             window.playMiddleLevelSuccessSfx();
           }
-          setTimeout(() => {
-            void advanceToNextLevelWithoutOverlay();
-          }, 2600);
+          await waitForVictorySuccessVoiceGate();
+          void advanceToNextLevelWithoutOverlay();
         }
       } else {
         if (typeof showGiftErrorMessage === "function") {
@@ -2818,6 +2816,12 @@ function waitMs(ms) {
   });
 }
 
+async function waitForVictorySuccessVoiceGate() {
+  // Deterministic gate: always wait 4 seconds before continuing.
+  // This avoids relying on audio ended events for progression timing.
+  await waitMs(4000);
+}
+
 function setProgressTokenToCircle(circleIndex, withTransition) {
   if (!questionProgressToken || !questionProgressCircles.length) {
     return;
@@ -3089,7 +3093,17 @@ function stopAllGame2Audio() {
       } catch (_) {}
     });
   } catch (_) {}
+
+  // Also stop any range-specific human overflow voice that is
+  // played via a standalone Audio instance (not attached to the DOM).
+  if (humanOverflowAudio) {
+    try {
+      humanOverflowAudio.pause();
+      humanOverflowAudio.currentTime = 0;
+    } catch (_) {}
+  }
 }
+
 
 function initGiftControlPanel() {
   giftControlPanel = document.getElementById("giftControlPanel");
@@ -3180,6 +3194,9 @@ function initGiftControlPanel() {
       if (giftButtonsLocked) {
         return;
       }
+      if (typeof window.stopHumanInputErrorVoice === "function") {
+        window.stopHumanInputErrorVoice();
+      }
       stopAllGame2Audio();
       if (typeof window.playPanelButtonClick === "function") {
         window.playPanelButtonClick();
@@ -3191,6 +3208,9 @@ function initGiftControlPanel() {
     giftMoveButton.addEventListener("click", () => {
       if (giftButtonsLocked) {
         return;
+      }
+      if (typeof window.stopHumanInputErrorVoice === "function") {
+        window.stopHumanInputErrorVoice();
       }
       if (typeof window.playPanelButtonClick === "function") {
         window.playPanelButtonClick();
@@ -3602,6 +3622,10 @@ function handleGiftDigitClick(digit) {
 
 
 function handleGiftResetClick() {
+  if (typeof window.stopHumanInputErrorVoice === "function") {
+    window.stopHumanInputErrorVoice();
+  }
+
   if (!giftControlPanel || !giftMonitor || !giftMonitorMessage || !giftMonitorInput) {
     return;
   }
@@ -3656,6 +3680,10 @@ function handleGiftResetClick() {
 
 
 function handleGiftMoveClick() {
+  if (typeof window.stopHumanInputErrorVoice === "function") {
+    window.stopHumanInputErrorVoice();
+  }
+
   // Only function when actually in a number-input phase ("prompt" or "typing");
   // in other phases the button remains clickable but does nothing.
   const phase = giftPanelState && giftPanelState.phase;
@@ -6772,6 +6800,9 @@ async function handleRestartRunClick() {
 
   if (typeof window.stopVictorySuccessVoice === "function") {
     window.stopVictorySuccessVoice();
+  }
+  if (typeof window.stopHumanInputErrorVoice === "function") {
+    window.stopHumanInputErrorVoice();
   }
 
   try {

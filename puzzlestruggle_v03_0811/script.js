@@ -1688,6 +1688,9 @@
     const currentHasTime = getPassRemainingMs(side) > 0;
 
     if (!preferredHasTime && currentHasTime) {
+      // Keep the same player active when the opponent has no time left.
+      // Re-rendering here clears per-question animation lock and shows the next prompt.
+      renderQuestionCard(side, true);
       return;
     }
 
