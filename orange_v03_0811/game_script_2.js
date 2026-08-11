@@ -659,10 +659,6 @@ function initClawMachinePNG() {
   const clawSheetFrameSizePx = 256;
   const clawSheetColumns = 4;
   const clawSheetRows = 4;
-  const transparentPixelSrc =
-    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Z5D8AAAAASUVORK5CYII=";
-  let clawSheetDisplayFrameWidthPx = 720;
-  let clawSheetDisplayFrameHeightPx = 720;
   const clawCloseAnimationDurationMs = 1500;
   const clawCloseFrameCount = 16;
   const clawCloseFrameDurationMs = clawCloseAnimationDurationMs / clawCloseFrameCount;
@@ -735,23 +731,11 @@ function initClawMachinePNG() {
 
 
   // Ensure the clamp image starts in the open state.
-  try {
-    img.src = clawSrcOpen;
-  } catch (_) {}
+  img.style.backgroundImage = `url(${clawSrcOpen})`;
 
   // Warm the spritesheet once to reduce first-play hitching.
   preloadImageAsset(clawSheetUrl);
-  preloadImageAsset(clawSrcOpen).then((openImg) => {
-    if (!openImg) {
-      return;
-    }
-    if (openImg.naturalWidth > 0) {
-      clawSheetDisplayFrameWidthPx = openImg.naturalWidth;
-    }
-    if (openImg.naturalHeight > 0) {
-      clawSheetDisplayFrameHeightPx = openImg.naturalHeight;
-    }
-  });
+  preloadImageAsset(clawSrcOpen);
 
   // Ensure the clamp swings around the top centre (steel bar).
   img.style.transformOrigin = "50% 0%";
@@ -765,23 +749,13 @@ function initClawMachinePNG() {
     if (!img) {
       return;
     }
-    const wasOpenMode = img.dataset.clawVisualMode === "open";
-    const hasOpenSource =
-      typeof img.currentSrc === "string" &&
-      img.currentSrc.indexOf("orange_fruit_claw_open.png") !== -1;
 
     img.dataset.clawVisualMode = "open";
-    img.style.backgroundImage = "none";
-    img.style.backgroundSize = "";
-    img.style.backgroundPosition = "0 0";
-    img.style.objectFit = "contain";
-    img.style.objectPosition = "50% 50%";
-
-    // Avoid resetting src every animation frame; repeated resets can
-    // trigger flicker or broken-image flashes on some browsers.
-    if (!wasOpenMode || !hasOpenSource) {
-      img.src = clawSrcOpen;
-    }
+    img.style.backgroundImage = `url(${clawSrcOpen})`;
+    img.style.backgroundSize = "contain";
+    img.style.backgroundPosition = "50% 50%";
+    img.style.backgroundRepeat = "no-repeat";
+    img.style.backgroundColor = "transparent";
   }
 
   function resetClawToOpenVisual() {
@@ -811,34 +785,22 @@ function initClawMachinePNG() {
     const row = Math.floor(safeIndex / clawSheetColumns);
 
     if (img.dataset.clawVisualMode !== "sheet") {
-      if (img.naturalWidth > 0) {
-        clawSheetDisplayFrameWidthPx = img.naturalWidth;
-      }
-      if (img.naturalHeight > 0) {
-        clawSheetDisplayFrameHeightPx = img.naturalHeight;
-      }
-
       img.dataset.clawVisualMode = "sheet";
-      // Keep a valid image source so browsers do not show a broken-image icon.
-      img.src = transparentPixelSrc;
-      img.removeAttribute("alt");
-      img.style.objectFit = "none";
-      img.style.objectPosition = "0 0";
       img.style.backgroundColor = "transparent";
     }
 
     const rect = img.getBoundingClientRect();
-    let frameDisplayWidth = rect.width;
-    let frameDisplayHeight = rect.height;
+    let frameDisplayWidth = Math.round(rect.width);
+    let frameDisplayHeight = Math.round(rect.height);
 
     if (!(frameDisplayWidth > 0) || !(frameDisplayHeight > 0)) {
       const computed = window.getComputedStyle(img);
-      frameDisplayWidth = parseFloat(computed.width) || 0;
-      frameDisplayHeight = parseFloat(computed.height) || 0;
+      frameDisplayWidth = Math.round(parseFloat(computed.width) || 0);
+      frameDisplayHeight = Math.round(parseFloat(computed.height) || 0);
     }
 
     if (!(frameDisplayWidth > 0) || !(frameDisplayHeight > 0)) {
-      const fallbackSize = (window.innerHeight || 0) * 0.1;
+      const fallbackSize = Math.round((window.innerHeight || 0) * 0.1);
       frameDisplayWidth = fallbackSize;
       frameDisplayHeight = fallbackSize;
     }
@@ -3987,8 +3949,7 @@ function showHintLabelAt(value) {
   tick.setAttribute("y2", yCenter);
   tick.setAttribute("stroke", "white");
   tick.setAttribute("stroke-width", "22.5");
-  tick.style.filter =
-    "drop-shadow(1vh 0 0 #000) drop-shadow(-1vh 0 0 #000) drop-shadow(0 1vh 0 #000) drop-shadow(0 -1vh 0 #000)";
+  tick.style.filter = "none";
   tick.style.opacity = "0";
   tick.style.transition = "opacity 0.8s ease-out";
 
@@ -3999,8 +3960,7 @@ function showHintLabelAt(value) {
   hint.setAttribute("fill", "white");
   hint.setAttribute("font-family", "Impact, Arial, sans-serif");
   hint.setAttribute("font-size", "360");
-  hint.style.filter =
-    "drop-shadow(1vh 0 0 #000) drop-shadow(-1vh 0 0 #000) drop-shadow(0 1vh 0 #000) drop-shadow(0 -1vh 0 #000)";
+  hint.style.filter = "none";
   hint.style.opacity = "0";
   hint.style.transition = "opacity 0.8s ease-out";
   hint.textContent = String(value);
@@ -5011,8 +4971,7 @@ function renderNumberLine(scale) {
 
   if (mainAxis) {
     mainAxis.setAttribute("stroke-width", "22.5");
-    mainAxis.style.filter =
-      "drop-shadow(1vh 0 0 #000) drop-shadow(-1vh 0 0 #000) drop-shadow(0 1vh 0 #000) drop-shadow(0 -1vh 0 #000)";
+    mainAxis.style.filter = "none";
   }
 
   // Canvas layout parameters in the 5000-unit SVG coordinate space.
@@ -5048,8 +5007,7 @@ function renderNumberLine(scale) {
     label.setAttribute("font-size", fontSize);
     label.setAttribute("opacity", opacity);
     if (groupLabels === labelsGroup) {
-      label.style.filter =
-        "drop-shadow(1vh 0 0 #000) drop-shadow(-1vh 0 0 #000) drop-shadow(0 1vh 0 #000) drop-shadow(0 -1vh 0 #000)";
+      label.style.filter = "none";
     }
     label.textContent = String(value);
     groupLabels.appendChild(label);

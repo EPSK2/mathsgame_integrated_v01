@@ -483,7 +483,12 @@ body {
   top: calc(30vh + 2.5vh);
   left: 50%;
   height: 15dvh;
-  width: auto;
+  width: 15dvh;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-size: contain;
+  image-rendering: pixelated;
+  overflow: hidden;
   filter:
     drop-shadow(0.5vh 0 0 #000)
     drop-shadow(-0.5vh 0 0 #000)

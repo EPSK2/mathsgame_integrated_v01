@@ -36,6 +36,37 @@ body {
   position: relative;
 }
 
+.ui-top-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 10vh;
+  display: flex;
+  align-items: stretch;
+  z-index: 2300;
+}
+
+.ui-home-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 10vh;
+  min-width: 10vh;
+  height: 10vh;
+  padding: 0.35rem;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.ui-home-icon {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0.35rem 0.55rem rgba(0, 0, 0, 0.35));
+}
+
 /* Header bar for game title: full-width at top 5% of screen */
 .game-header {
   position: fixed;

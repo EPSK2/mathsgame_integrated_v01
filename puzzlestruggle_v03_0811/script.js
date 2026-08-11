@@ -56,6 +56,7 @@
   const END_SINGLE_LOSE_BEAR_SRC_GOOD = "./bear_front-deep_breath.png";
   const END_SINGLE_LOSE_BEAR_SRC_BAD = "./bad_bear-sad.png";
   const END_DOUBLE_CELEBRATION_BEAR_SRC = "./bear_double_celebration.png";
+  const STARTUP_PRELOAD_TIMEOUT_MS = 2000;
   const END_BEAR_SPRITE_COLUMNS = 4;
   const END_BEAR_SPRITE_ROWS = 4;
   const END_DOUBLE_CELEBRATION_COLUMNS = 5;
@@ -328,6 +329,72 @@
     if (ui.rightBear) {
       ui.rightBear.src = getRightBearStandSrc();
     }
+  }
+
+  function preloadImage(src) {
+    return new Promise((resolve) => {
+      if (!src) {
+        resolve();
+        return;
+      }
+
+      const image = new Image();
+      const finish = () => resolve();
+      image.onload = finish;
+      image.onerror = finish;
+      image.src = src;
+
+      if (typeof image.decode === "function") {
+        image.decode().then(finish).catch(finish);
+      }
+    });
+  }
+
+  function preloadCriticalBearSprites() {
+    const spriteSources = [
+      LEFT_BEAR_STAND_SRC,
+      LEFT_BEAR_JUMP_SRC,
+      "./good_bear_1_confused.png",
+      RIGHT_BEAR_STAND_SRC,
+      RIGHT_BEAR_JUMP_SRC,
+      RIGHT_BEAR_MULTIPLAYER_STAND_SRC,
+      RIGHT_BEAR_MULTIPLAYER_JUMP_SRC,
+      "./good_bear_2_confused.png",
+    ];
+
+    return Promise.all(spriteSources.map((src) => preloadImage(src)));
+  }
+
+  function preloadEndResultSprites() {
+    const spriteSources = [
+      END_FACE_BEAR_SRC,
+      END_FACE_BEAR_SRC_RIGHT_MULTIPLAYER,
+      END_FACE_BEAR_SRC_BAD,
+      END_FIRST_BEAR_SRC,
+      END_FIRST_BEAR_SRC_RIGHT_MULTIPLAYER,
+      END_SECOND_BEAR_SRC,
+      END_SECOND_BEAR_SRC_RIGHT_MULTIPLAYER,
+      END_SINGLE_WIN_BEAR_SRC_BAD,
+      END_SINGLE_LOSE_BEAR_SRC_GOOD,
+      END_SINGLE_LOSE_BEAR_SRC_BAD,
+      END_DOUBLE_CELEBRATION_BEAR_SRC,
+    ];
+
+    return Promise.all(spriteSources.map((src) => preloadImage(src)));
+  }
+
+  function scheduleEndResultSpritePreload() {
+    if (state.endResultSpritesPreloadPromise) {
+      return state.endResultSpritesPreloadPromise;
+    }
+
+    state.endResultSpritesPreloadPromise = new Promise((resolve) => {
+      window.setTimeout(() => {
+        preloadEndResultSprites().finally(resolve);
+      }, 0);
+    });
+
+    return state.endResultSpritesPreloadPromise;
   }
 
   function createAdditionQuestion(maxSum) {
@@ -657,6 +724,7 @@
       left: null,
       right: null,
     },
+    endResultSpritesPreloadPromise: null,
 
     left: {
       scoreHistory: loadScoreHistory(),
@@ -2348,11 +2416,18 @@
     const jumpSrc = isLeft ? LEFT_BEAR_JUMP_SRC : getRightBearJumpSrc();
     const standSrc = isLeft ? LEFT_BEAR_STAND_SRC : getRightBearStandSrc();
     const timerKey = isLeft ? "leftBearJumpTimerId" : "rightBearJumpTimerId";
+    const confusedTimerKey = isLeft ? "leftBearConfusedTimerId" : "rightBearConfusedTimerId";
+    const confusedEndsAtKey = isLeft ? "leftBearConfusedEndsAtMs" : "rightBearConfusedEndsAtMs";
 
     if (state[timerKey] != null) {
       window.clearTimeout(state[timerKey]);
       state[timerKey] = null;
     }
+    if (state[confusedTimerKey] != null) {
+      window.clearTimeout(state[confusedTimerKey]);
+      state[confusedTimerKey] = null;
+    }
+    state[confusedEndsAtKey] = 0;
 
     bearEl.style.setProperty("--bear-jump-distance", jumpDistance);
     bearEl.src = jumpSrc;
@@ -2383,12 +2458,19 @@
     const isLeft = side === "left";
     const timerKey = isLeft ? "leftBearConfusedTimerId" : "rightBearConfusedTimerId";
     const endsAtKey = isLeft ? "leftBearConfusedEndsAtMs" : "rightBearConfusedEndsAtMs";
+    const jumpTimerKey = isLeft ? "leftBearJumpTimerId" : "rightBearJumpTimerId";
+    const jumpEndsAtKey = isLeft ? "leftBearJumpEndsAtMs" : "rightBearJumpEndsAtMs";
     const standSrc = isLeft ? LEFT_BEAR_STAND_SRC : getRightBearStandSrc();
 
     if (state[timerKey] != null) {
       window.clearTimeout(state[timerKey]);
       state[timerKey] = null;
     }
+    if (state[jumpTimerKey] != null) {
+      window.clearTimeout(state[jumpTimerKey]);
+      state[jumpTimerKey] = null;
+    }
+    state[jumpEndsAtKey] = 0;
 
     bearEl.classList.remove("is-jumping", "is-confused");
     void bearEl.offsetWidth;
@@ -3129,6 +3211,7 @@
     startRoundTimer();
     beginRoundQuestions(token);
     playInGameMusicLoop();
+    void scheduleEndResultSpritePreload();
     if (!state.isTwoPlayer) {
       schedule(FIRST_WINDOW_MS, () => {
         if (token !== state.roundToken) return;
@@ -3248,7 +3331,7 @@
     schedule(1000, tick);
   }
 
-  function init() {
+  async function init() {
     preventTouchZoomGestures();
     applyMultiplayerSideAssets();
     initFireOverlays();
@@ -3258,6 +3341,12 @@
     attachEvents();
     renderTimer(Math.ceil(ROUND_DURATION_MS / 1000));
     scheduleQuestionTypographyFit();
+
+    await Promise.race([
+      preloadCriticalBearSprites(),
+      new Promise((resolve) => window.setTimeout(resolve, STARTUP_PRELOAD_TIMEOUT_MS)),
+    ]);
+
     runStartupCountdown();
   }
 

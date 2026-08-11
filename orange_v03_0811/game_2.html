@@ -45,11 +45,10 @@
   <div id="clawBar"></div>
   <img id="leftCog" class="claw-cog" src="./cog.png" alt="" aria-hidden="true" />
   <img id="rightCog" class="claw-cog" src="./cog.png" alt="" aria-hidden="true" />
-        <img
+        <div
     id="clawMachineImage"
-      src="./orange_fruit_claw_open.png"
-    alt="Claw machine clamp"
-  />
+    aria-hidden="true"
+  ></div>
   <!-- Gift position input panel -->
   <div
     id="giftControlPanel"
@@ -299,6 +298,16 @@
         y2="84"
         stroke="rgba(150,150,150,0.55)"
         stroke-width="24"
+      />
+      <line
+        id="mainAxis"
+        x1="50"
+        y1="84"
+        x2="4950"
+        y2="84"
+        stroke="white"
+        stroke-width="22.5"
+        stroke-linecap="round"
       />
       <!-- Back arrowheads (manual polygons, no markers) -->
       <!-- <polygon
