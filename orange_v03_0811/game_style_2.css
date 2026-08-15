@@ -6,6 +6,14 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'NotoEmoji-Regular';
+  src: url('../NotoEmoji-Regular.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+}
+
 .custom-font-bold{
   -webkit-text-stroke: 0.7px currentColor;
 }
@@ -20,8 +28,12 @@ body{
   font-family: 'allSeto';
 }
 
-button{
-  font-family: 'allSeto' !important;
+button,
+.ui-home-button,
+.ui-end-action-button,
+.victory-button,
+.gift-key-btn {
+  font-family: 'NotoEmoji-Regular', 'Noto Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif !important;
 }
 
 :root {
@@ -36,7 +48,7 @@ button{
   top: 0;
   left: 20vw;
   width: 65vw;
-  height: 15vh;
+  height: 15dvh;
   z-index: 1600;
   pointer-events: none;
   transform: none;
@@ -53,17 +65,17 @@ button{
 }
 
 .question-progress.is-centered-transition {
-  top: 50vh;
+  top: 50dvh;
   left: 50vw;
-  width: min(86vw, 150vh);
-  height: 19vh;
+  width: min(86vw, 150dvh);
+  height: 19dvh;
   transform: translate(-50%, -50%);
-  padding: 1.4vh 2.2vw;
-  border-radius: 2.2vh;
+  padding: 1.4dvh 2.2vw;
+  border-radius: 2.2dvh;
   background-color: rgba(0, 0, 0, 0.5);
   box-shadow:
-    0 1.2vh 2.6vh rgba(0, 0, 0, 0.5),
-    inset 0 0 0 0.18vh rgba(255, 255, 255, 0.18);
+    0 1.2dvh 2.6dvh rgba(0, 0, 0, 0.5),
+    inset 0 0 0 0.18dvh rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(1.8px);
   -webkit-backdrop-filter: blur(1.8px);
 }
@@ -74,13 +86,13 @@ button{
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  height: 3.6vh;
+  height: 3.6dvh;
   border-radius: 999px;
-  border: 0.45vh solid rgba(255, 255, 255, 0.82);
+  border: 0.45dvh solid rgba(255, 255, 255, 0.82);
   background: rgba(255, 255, 255, 0.2);
   box-shadow:
-    0 0 1.1vh rgba(255, 255, 255, 0.45),
-    inset 0 0 1.6vh rgba(255, 255, 255, 0.28);
+    0 0 1.1dvh rgba(255, 255, 255, 0.45),
+    inset 0 0 1.6dvh rgba(255, 255, 255, 0.28);
   overflow: hidden;
   z-index: 1;
 }
@@ -101,9 +113,9 @@ button{
   );
   transition: width 1.8s ease-in-out;
   box-shadow:
-    0 0 1.6vh rgba(251, 146, 60, 0.95),
-    0 0 3.2vh rgba(239, 68, 68, 0.7),
-    inset 0 0 0.9vh rgba(255, 236, 179, 0.65);
+    0 0 1.6dvh rgba(251, 146, 60, 0.95),
+    0 0 3.2dvh rgba(239, 68, 68, 0.7),
+    inset 0 0 0.9dvh rgba(255, 236, 179, 0.65);
 }
 
 .question-progress-fill-particles {
@@ -117,12 +129,12 @@ button{
   position: absolute;
   bottom: -25%;
   left: var(--particle-left, 50%);
-  width: var(--particle-size, 0.5vh);
-  height: var(--particle-size, 0.5vh);
+  width: var(--particle-size, 0.5dvh);
+  height: var(--particle-size, 0.5dvh);
   border-radius: 50%;
   opacity: var(--particle-opacity, 0.85);
   background: var(--particle-color, rgba(255, 239, 184, 0.95));
-  filter: drop-shadow(0 0 0.4vh rgba(255, 152, 0, 0.9));
+  filter: drop-shadow(0 0 0.4dvh rgba(255, 152, 0, 0.9));
   transform: translateX(-50%);
   animation: progress-particle-rise-random var(--particle-duration, 1.9s) linear infinite;
   animation-delay: var(--particle-delay, 0s);
@@ -142,22 +154,22 @@ button{
 
 .question-progress-circle {
   position: relative;
-  width: 10vh;
-  height: 10vh;
+  width: 10dvh;
+  height: 10dvh;
   border-radius: 50%;
-  border: 0.45vh solid rgba(255, 255, 255, 0.9);
+  border: 0.45dvh solid rgba(255, 255, 255, 0.9);
   background: #ececec;
   box-shadow:
-    0 0 1.5vh rgba(255, 255, 255, 0.45),
-    inset 0 0 1.6vh rgba(255, 255, 255, 0.32);
+    0 0 1.5dvh rgba(255, 255, 255, 0.45),
+    inset 0 0 1.6dvh rgba(255, 255, 255, 0.32);
   overflow: hidden;
 }
 
 .question-progress-circle.is-start {
   background: #0b2a57;
   box-shadow:
-    0 0 1.8vh rgba(13, 42, 88, 0.78),
-    inset 0 0 1.6vh rgba(255, 255, 255, 0.2);
+    0 0 1.8dvh rgba(13, 42, 88, 0.78),
+    inset 0 0 1.6dvh rgba(255, 255, 255, 0.2);
 }
 
 .question-progress-circle.is-start::after {
@@ -167,9 +179,9 @@ button{
   top: 50%;
   transform: translate(-50%, -52%);
   color: #ffffff;
-  font-size: 3.6vh;
+  font-size: 3.6dvh;
   font-weight: 700;
-  text-shadow: 0 0 0.7vh rgba(0, 0, 0, 0.75);
+  text-shadow: 0 0 0.7dvh rgba(0, 0, 0, 0.75);
   z-index: 8;
   pointer-events: none;
 }
@@ -187,8 +199,8 @@ button{
     rgba(234, 88, 12, 0.96) 100%
   );
   box-shadow:
-    inset 0 0 1.2vh rgba(255, 237, 160, 0.6),
-    0 0 1.4vh rgba(249, 115, 22, 0.6);
+    inset 0 0 1.2dvh rgba(255, 237, 160, 0.6),
+    0 0 1.4dvh rgba(249, 115, 22, 0.6);
 }
 
 .question-progress-circle.is-filled .question-progress-circle-fill {
@@ -198,8 +210,8 @@ button{
 .question-progress-token {
   position: absolute;
   --question-progress-token-scale: 1;
-  width: 8.96vh;
-  height: 8.96vh;
+  width: 8.96dvh;
+  height: 8.96dvh;
   border-radius: 50%;
   z-index: 6;
   pointer-events: none;
@@ -248,22 +260,22 @@ button{
 
 @media (max-width: 900px) {
   .question-progress-circle {
-    width: 7.8vh;
-    height: 7.8vh;
+    width: 7.8dvh;
+    height: 7.8dvh;
   }
 
   .question-progress-track {
-    height: 3.2vh;
-    border-width: 0.35vh;
+    height: 3.2dvh;
+    border-width: 0.35dvh;
   }
 
   .question-progress-token {
-    width: 6.56vh;
-    height: 6.56vh;
+    width: 6.56dvh;
+    height: 6.56dvh;
   }
 
   .question-progress-token-arrow {
-    font-size: 3.1vh;
+    font-size: 3.1dvh;
   }
 }
 
@@ -273,7 +285,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   position: relative;
   isolation: isolate;
@@ -283,7 +295,7 @@ body {
   position: fixed;
   inset: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   z-index: -3;
   pointer-events: none;
@@ -293,7 +305,7 @@ body {
   position: absolute;
   top: 0;
   left: 50%;
-  height: 100vh;
+  height: 100dvh;
   width: auto;
   max-width: none;
   display: block;
@@ -305,7 +317,7 @@ body {
   position: fixed;
   inset: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   transform-origin: left center;
   /* Smooth transition back to full view */
@@ -348,7 +360,7 @@ body {
 
 /* Bottom mode indicator arrows and number line.
    The whole strip (including 小 and 大) spans horizontally from 25vw to 75vw,
-   and is centred vertically around 72.5vh (between 0.7–0.75 of viewport height). */
+   and is centred vertically around 72.5dvh (between 0.7–0.75 of viewport height). */
 #bottomModeArrowStrip {
   position: fixed;
   left: 12.5vw;
@@ -396,7 +408,7 @@ body {
 #introVideo {
   position: fixed;
   left: 10vw;
-  bottom: 9vh;
+  bottom: 9dvh;
   width: 24vw;
   max-width: 480px;
   height: auto;
@@ -415,7 +427,7 @@ body {
   inset: 0;
   display: block;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   margin: 0;
   border-radius: 0;
   box-shadow: none;
@@ -425,12 +437,12 @@ body {
 /* Hollow gray track for claw machine */
 #clawBar {
   position: fixed;
-  top: 30vh;
+  top: 30dvh;
   left: 5vw;
   width: 90vw;
-  height: 3vh;
+  height: 3dvh;
   box-sizing: border-box;
-  border: 1vh solid #333;
+  border: 1dvh solid #333;
   background: transparent;
   z-index: 350;
 }
@@ -443,57 +455,58 @@ body {
   width: 7.5vw;
   height: 100%;
   box-sizing: border-box;
-  border-right: 0.4vh solid #9ca3af;
+  border-right: 0.4dvh solid #9ca3af;
   background: repeating-linear-gradient(
     45deg,
     #facc15 0,
-    #facc15 1.1vh,
-    #111827 1.1vh,
-    #111827 2.2vh
+    #facc15 1.1dvh,
+    #111827 1.1dvh,
+    #111827 2.2dvh
   );
 }
 
 .claw-cog {
   position: fixed;
-  top: calc(30vh - 3.75vh);
-  width: 9vh;
-  height: 9vh;
+  top: calc(30dvh - 3.75dvh);
+  width: 9dvh;
+  height: 9dvh;
   pointer-events: none;
   z-index: 360;
   transform-origin: 50% 50%;
   filter:
-    drop-shadow(0.5vh 0 0 #000)
-    drop-shadow(-0.5vh 0 0 #000)
-    drop-shadow(0 0.5vh 0 #000)
-    drop-shadow(0 -0.5vh 0 #000);
+    drop-shadow(0.5dvh 0 0 #000)
+    drop-shadow(-0.5dvh 0 0 #000)
+    drop-shadow(0 0.5dvh 0 #000)
+    drop-shadow(0 -0.5dvh 0 #000);
 }
 
 #leftCog {
-  left: calc(7.5vw - 3.75vh - 2.5vh);
+  left: calc(7.5vw - 3.75dvh - 2.5dvh);
 }
 
 #rightCog {
-  left: calc(95vw - 3.75vh);
+  left: calc(95vw - 3.75dvh);
 }
 
 /* Claw machine image with pivot at the steel bar bottom */
 #clawMachineImage {
   position: fixed;
   /* Top of the image is aligned to the track's vertical center line. */
-  top: calc(30vh + 2.5vh);
+  top: calc(30dvh + 2.5dvh);
   left: 50%;
+  /* A transformed element is painted in full outside its own layout box. */
   height: 15dvh;
   width: 15dvh;
   background-repeat: no-repeat;
   background-position: 50% 50%;
   background-size: contain;
   image-rendering: pixelated;
-  overflow: hidden;
+  overflow: visible;
   filter:
-    drop-shadow(0.5vh 0 0 #000)
-    drop-shadow(-0.5vh 0 0 #000)
-    drop-shadow(0 0.5vh 0 #000)
-    drop-shadow(0 -0.5vh 0 #000);
+    drop-shadow(0.5dvh 0 0 #000)
+    drop-shadow(-0.5dvh 0 0 #000)
+    drop-shadow(0 0.5dvh 0 #000)
+    drop-shadow(0 -0.5dvh 0 #000);
   transform-origin: 50% 0%;
   display: block;
   cursor: default;
@@ -549,12 +562,97 @@ body {
   background: transparent;
   border: none;
   cursor: pointer;
+  position: relative;
+  isolation: isolate;
+  font-size: clamp(2rem, 4.6dvh, 3rem);
+  line-height: 1;
+}
+
+.ui-home-button::before {
+  content: "";
+  position: absolute;
+  inset: 9%;
+  background: linear-gradient(180deg, rgba(251, 146, 60, 0.95), rgba(234, 88, 12, 0.95));
+  border: 0.16rem solid rgba(255, 237, 213, 0.95);
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+  box-shadow: 0 0.35rem 0.75rem rgba(124, 45, 18, 0.45);
+  z-index: -1;
 }
 
 .ui-home-icon {
   width: 100%;
   height: 100%;
   filter: drop-shadow(0 0.35rem 0.55rem rgba(0, 0, 0, 0.35));
+}
+
+.game-guide-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: rgba(90, 90, 90, 0.62);
+  z-index: 2100;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease-out, visibility 0.2s ease-out;
+}
+
+.game-guide-overlay.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.game-guide-overlay.hidden {
+  display: none;
+}
+
+.game-guide-highlight-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.game-guide-highlight {
+  position: fixed;
+  border: 0.22rem solid rgba(255, 255, 255, 0.95);
+  border-radius: 0.95rem;
+  pointer-events: none;
+}
+
+.game-guide-progress-caption {
+  position: fixed;
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(1.3rem, 5dvh, 60px);
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: right;
+  text-shadow: 0 0.25rem 0.6rem rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  z-index: 2103;
+}
+
+.game-guide-progress-number {
+  color: #fb923c;
+  font-size: 1.5em;
+  font-weight: 900;
+  display: inline-block;
+  line-height: 0.95;
+}
+
+.game-guide-overlay .ui-end-action-buttons {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(2rem, 4dvh, 3.5rem);
+  transform: translateX(-50%);
+  z-index: 2103;
+}
+
+.game-guide-focus-target {
+  z-index: 2102 !important;
 }
 
 
@@ -788,10 +886,10 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  --victory-header-height: 15vh;
-  --victory-bear-size: 40vh;
+  --victory-header-height: 15dvh;
+  --victory-bear-size: 40dvh;
   --victory-star-anchor-x: 50vw;
-  --victory-star-anchor-y: 37.5vh;
+  --victory-star-anchor-y: 37.5dvh;
   opacity: 0;
   pointer-events: none;
   background:
@@ -817,8 +915,8 @@ body {
   background-image:
     linear-gradient(45deg, rgba(255, 235, 170, 0.78) 25%, transparent 25%, transparent 75%, rgba(255, 235, 170, 0.78) 75%, rgba(255, 235, 170, 0.78)),
     linear-gradient(45deg, rgba(255, 179, 71, 0.82) 25%, transparent 25%, transparent 75%, rgba(255, 179, 71, 0.82) 75%, rgba(255, 179, 71, 0.82));
-  background-position: 0 0, 2.5vh 2.5vh;
-  background-size: 5vh 5vh;
+  background-position: 0 0, 2.5dvh 2.5dvh;
+  background-size: 5dvh 5dvh;
   border-bottom: 0.25rem solid rgba(255, 248, 225, 0.3);
 }
 
@@ -831,7 +929,7 @@ body {
 .victory-text-block {
   position: absolute;
   left: 50%;
-  top: calc(var(--victory-header-height) + 3vh);
+  top: calc(var(--victory-header-height) + 3dvh);
   transform: translateX(-50%);
   width: min(92vw, 1200px);
   text-align: center;
@@ -844,7 +942,7 @@ body {
   font-size: clamp(2.2rem, 4vw, 3.5rem);
   line-height: 1.35;
   white-space: pre-line;
-  text-shadow: 0 0.35vh 1vh rgba(255, 236, 194, 0.32);
+  text-shadow: 0 0.35dvh 1dvh rgba(255, 236, 194, 0.32);
 }
 
 .victory-celebration-area {
@@ -857,12 +955,12 @@ body {
 .victory-bear-sprite {
   position: absolute;
   left: 50%;
-  top: calc(var(--victory-header-height) + ((100vh - var(--victory-header-height)) * 0.5));
+  top: calc(var(--victory-header-height) + ((100dvh - var(--victory-header-height)) * 0.5));
   width: 256px;
   height: 256px;
   transform-origin: center;
   opacity: 0;
-  filter: drop-shadow(0 1.2vh 1.8vh rgba(62, 19, 0, 0.45));
+  filter: drop-shadow(0 1.2dvh 1.8dvh rgba(62, 19, 0, 0.45));
   transition: opacity 2s ease;
 }
 
@@ -919,49 +1017,36 @@ body {
 }
 
 .victory-extra-text {
-  --victory-attempts-base-size: clamp(1.8rem, 3.2vw, 2.8rem);
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  transform-origin: center;
+  right: 2.2vw;
+  bottom: 2.2dvh;
   font-weight: 700;
-  color: #5b2d00;
-  font-size: var(--victory-attempts-base-size);
-  line-height: 1.35;
-  white-space: nowrap;
+  color: #0b2a57;
+  font-size: 5dvh;
+  line-height: 1.25;
+  white-space: normal;
+  text-align: right;
   margin: 0;
-  text-shadow: 0 0.3vh 0.8vh rgba(255, 236, 194, 0.25);
-  transition: color 0.35s ease, font-size 0.35s ease, text-shadow 0.35s ease;
+  text-shadow: none;
+  transition: color 0.2s ease;
   z-index: 4;
 }
 
 .victory-extra-text.is-finalized {
-  color: #000000;
-  font-size: calc(var(--victory-attempts-base-size) * 2);
-  text-shadow: 0 0.35vh 1vh rgba(255, 255, 255, 0.2);
+  color: #0b2a57;
+}
+
+.victory-extra-mode,
+.victory-extra-attempts {
+  display: block;
 }
 
 .victory-extra-text-star {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: calc(var(--victory-attempts-base-size) * 4);
-  height: calc(var(--victory-attempts-base-size) * 4);
-  transform: translate(-50%, -50%);
-  transform-origin: center;
-  background-image: url("./award_star.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  filter: saturate(1.5) hue-rotate(-12deg) brightness(1.16);
-  opacity: 0;
-  z-index: -1;
-  pointer-events: none;
+  display: none;
 }
 
 .victory-extra-text.is-finalized .victory-extra-text-star {
-  opacity: 0.92;
-  animation: victoryAttemptsStarSpin 6s linear infinite;
+  display: none;
 }
 
 @keyframes victoryAttemptsStarSpin {
@@ -1022,7 +1107,7 @@ body {
   }
   100% {
     opacity: 0;
-    transform: translate3d(var(--drift-x, 0vw), 115vh, 0) rotate(calc(var(--spin-start, 0deg) + 760deg));
+    transform: translate3d(var(--drift-x, 0vw), 115dvh, 0) rotate(calc(var(--spin-start, 0deg) + 760deg));
   }
 }
 
@@ -1030,10 +1115,10 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 4vh;
-  height: 4vh;
-  margin-top: -2vh;
-  margin-left: -2vh;
+  width: 4dvh;
+  height: 4dvh;
+  margin-top: -2dvh;
+  margin-left: -2dvh;
   background-image: url("./award_star.png");
   background-size: contain;
   background-repeat: no-repeat;
@@ -1080,7 +1165,7 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 3vh;
+  bottom: 3dvh;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -1097,8 +1182,8 @@ body {
 }
 
 .ui-end-action-button {
-  width: min(20vw, 20vh);
-  height: min(20vw, 20vh);
+  width: min(20vw, 20dvh);
+  height: min(20vw, 20dvh);
   border: 0;
   border-radius: 1rem;
   background: rgba(0, 0, 0, 0.9);
@@ -1116,12 +1201,12 @@ body {
 
 .ui-end-footer-actions .ui-end-action-button,
 .victory-buttons .ui-end-action-button {
-  width: min(15vw, 15vh);
-  height: min(15vw, 15vh);
+  width: min(15vw, 15dvh);
+  height: min(15vw, 15dvh);
   border: 0.22rem solid rgba(255, 255, 255, 0.38);
   border-radius: 1.2rem;
   background: rgba(0, 0, 0, 0.82);
-  font-size: min(9.375vw, 9.375vh);
+  font-size: min(9.375vw, 9.375dvh);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1157,7 +1242,7 @@ body {
 
 .menu-arrow {
   position: fixed;
-  top: 8vh;
+  top: 8dvh;
   left: 0.5vw;
   z-index: 1500;
   display: inline-flex;
@@ -1272,10 +1357,10 @@ body {
  width: auto;
  height: 15dvh;
  filter:
-  drop-shadow(0.5vh 0 0 #050)
-  drop-shadow(-0.5vh 0 0 #050)
-  drop-shadow(0 0.5vh 0 #050)
-  drop-shadow(0 -0.5vh 0 #050)
+  drop-shadow(0.5dvh 0 0 #050)
+  drop-shadow(-0.5dvh 0 0 #050)
+  drop-shadow(0 0.5dvh 0 #050)
+  drop-shadow(0 -0.5dvh 0 #050)
 }
 
 
@@ -1675,7 +1760,7 @@ body {
 
 .menu-arrow {
   position: fixed;
-  top: 8vh;
+  top: 8dvh;
   left: 0.5vw;
   z-index: 1500;
   display: inline-flex;

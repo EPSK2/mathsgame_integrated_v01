@@ -20,31 +20,10 @@
   };
 
   let marqueeState = null;
-  let waitAudio = null;
   let bgMusicAudio = null;
   let bgMusicFadeRafId = 0;
   let bgMusicWasPlayingBeforeFade = false;
   const prepBgMusicDefaultVolume = 0.15;
-
-    function playWaitVoiceOnce() {
-    try {
-      if (!waitAudio) {
-        waitAudio = new Audio("voice_human_wait.mp3");
-        waitAudio.preload = "auto";
-      }
-      waitAudio.currentTime = 0;
-      waitAudio.play().catch(function () {});
-    } catch (_) {}
-  }
-
-  function stopWaitVoice() {
-    try {
-      if (waitAudio) {
-        waitAudio.pause();
-        waitAudio.currentTime = 0;
-      }
-    } catch (_) {}
-  }
 
   function playPrepBgMusicLoop() {
     try {
@@ -183,7 +162,7 @@
       msgEl.textContent =
         typeof message === "string" && message.length > 0
           ? message
-          : "遊戲載入中，請稍後...";
+          : "遊戲載入中，請稍候...";
     }
 
     return overlay;
@@ -385,8 +364,6 @@
 
     overlay.classList.remove("prep-overlay-hidden");
     void overlay.offsetWidth;
-
-    playWaitVoiceOnce();
   }
 
   /**
@@ -403,13 +380,6 @@
         const performFadeOut = function () {
       overlay.classList.add("prep-overlay-hidden");
 
-      // Stop the wait announcement slightly before the overlay fully disappears
-      // from view (0.5s lead vs. the CSS fade duration of 0.6s).
-      const OVERLAY_FADE_MS = 600;
-      const WAIT_STOP_LEAD_MS = 500;
-      const stopDelayMs = Math.max(0, OVERLAY_FADE_MS - WAIT_STOP_LEAD_MS);
-      setTimeout(stopWaitVoice, stopDelayMs);
-
       const removeAfterTransition = function () {
         overlay.removeEventListener("transitionend", removeAfterTransition);
         if (overlay.parentNode) {
@@ -417,10 +387,11 @@
         }
 
         stopMarqueeLoop();
-
         if (typeof window.onPrepOverlayHidden === "function") {
           try {
-            window.onPrepOverlayHidden();
+            const onHidden = window.onPrepOverlayHidden;
+            window.onPrepOverlayHidden = null;
+            onHidden();
           } catch (_) {}
         }
       };

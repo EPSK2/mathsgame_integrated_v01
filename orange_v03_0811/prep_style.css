@@ -15,10 +15,6 @@ body{
   font-family: 'allSeto';
 }
 
-button{
-  font-family: 'allSeto' !important;
-}
-
 /* Full-screen preparation / loading overlay */
 .prep-overlay {
   position: fixed;

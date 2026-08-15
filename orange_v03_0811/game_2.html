@@ -20,6 +20,25 @@
     <!-- 2.5D Jungle Canvas Background -->
   <canvas id="gameCanvas"></canvas>
 
+    <div id="gameGuideOverlay" class="game-guide-overlay hidden" aria-hidden="true">
+      <div class="game-guide-highlight-layer" aria-hidden="true">
+        <div class="game-guide-highlight" data-highlight="progress"></div>
+        <p id="gameGuideOverlayProgressText" class="game-guide-progress-caption" aria-hidden="true">
+          完成<span class="game-guide-progress-number">5</span>個挑戰！
+        </p>
+      </div>
+      <div class="ui-end-action-buttons" aria-label="Start game">
+        <button
+          id="gameGuideOverlayStartButton"
+          type="button"
+          class="ui-end-action-button victory-button"
+          aria-label="開始遊戲"
+        >
+          ➡
+        </button>
+      </div>
+    </div>
+
   <div id="questionProgress" class="question-progress" aria-hidden="true">
     <div class="question-progress-track">
       <div id="questionProgressFill" class="question-progress-fill">
@@ -163,21 +182,18 @@
   </div>
 
     <div id="gameShell" class="game-shell max-w-3xl mx-auto">
-    <header class="game-header-spacer ui-top-header" aria-label="Top controls">
+        <header class="game-header-spacer ui-top-header" aria-label="Top controls">
       <button
         id="menuArrow"
         class="ui-home-button"
-        onclick="returnToMenu()"
+        onclick="goToOrangeDialogue01()"
         type="button"
-        aria-label="Go to home screen"
+        aria-label="返回香橙熊主選單對話"
       >
-        <svg class="ui-home-icon" viewBox="0 0 100 100" role="img" aria-hidden="true" focusable="false">
-          <polygon points="25,2 75,2 98,25 98,75 75,98 25,98 2,75 2,25" fill="#ff8c1a" stroke="#8a4b00" stroke-width="6"></polygon>
-          <polygon points="18,18 82,18 82,82 18,82" fill="#ffb347" opacity="0.45"></polygon>
-          <path d="M50 27 70 45v25H57V56H43v14H30V45z" fill="#5a2f00"></path>
-        </svg>
+        🏠
       </button>
     </header>
+
 
     <!-- 主菜單容器：新版流程中不顯示任何內容，僅作結構及後備使用 -->
     <div id="mainMenu" class="hidden"></div>

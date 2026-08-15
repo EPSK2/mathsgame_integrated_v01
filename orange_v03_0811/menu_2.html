@@ -18,15 +18,32 @@
     <div id="viewport-container">
     <canvas id="gameCanvas"></canvas>
 
-    <header class="ui-top-header" aria-label="Top controls">
-      <a class="ui-home-button" href="../temp_index.html" aria-label="Go to home screen" title="返回主頁">
-        <svg class="ui-home-icon" viewBox="0 0 100 100" role="img" aria-hidden="true" focusable="false">
-          <polygon points="25,2 75,2 98,25 98,75 75,98 25,98 2,75 2,25" fill="#ff8c1a" stroke="#8a4b00" stroke-width="6"></polygon>
-          <polygon points="18,18 82,18 82,82 18,82" fill="#ffb347" opacity="0.45"></polygon>
-          <path d="M50 27 70 45v25H57V56H43v14H30V45z" fill="#5a2f00"></path>
-        </svg>
+    <div id="menuStartupOverlay" class="menu-startup-overlay hidden" aria-hidden="true">
+      <div class="menu-startup-content">
+        <img
+          class="menu-startup-logo"
+          src="./orange_game_title.png"
+          alt="🍊香橙島任務1：數線尋寶"
+        />
+        <div class="ui-end-action-buttons" aria-label="Start menu intro">
+          <button
+            id="menuStartupStartButton"
+            type="button"
+            class="ui-end-action-button victory-button"
+            aria-label="開始遊戲"
+          >
+            ➡
+          </button>
+        </div>
+      </div>
+    </div>
+
+        <header class="ui-top-header" aria-label="Top controls">
+      <a class="ui-home-button" href="../temp_index.html" aria-label="返回主頁" title="返回主頁">
+        🏠
       </a>
     </header>
+
 
         <img
       id="helperBearSprite"
@@ -54,19 +71,7 @@
     </div>
     
     <div id="menuShell" class="game-shell max-w-3xl mx-auto flex flex-col items-center justify-center min-h-screen">
-      <h1 id="gameTitle" class="mb-8 px-6 py-5">
-        <img
-          src="./orange_game_title.png"
-          alt="🍊香橙島任務1：數線尋寶"
-          class="mx-auto"
-          style="
-            height:50vh;width:auto;
-          "
-        />
-      </h1>
-
-
-      <div id="menu2Overlay" class="menu2-overlay hidden" aria-hidden="true">
+            <div id="menu2Overlay" class="menu2-overlay hidden" aria-hidden="true">
         <main class="menu2-shell" aria-label="Game setup menu">
           <section
             class="menu2-stage is-active"
@@ -115,6 +120,7 @@
           </div>
         </main>
       </div>
+
 
             <!-- 教學視窗覆蓋層 -->
       <div

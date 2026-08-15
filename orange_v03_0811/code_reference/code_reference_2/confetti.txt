@@ -1,0 +1,83 @@
+Create a full-screen celebration overlay.
+
+Use fixed positioning with inset 0, high z-index, pointer-events none for confetti container.
+
+Add one confetti layer covering the full overlay (not left/right halves).
+
+Define one confetti piece element style.
+
+Position absolute.
+
+Start at top -8%.
+
+Left position from a custom property start-x.
+
+Width from custom property piece-width multiplied by 2.
+
+Height from custom property piece-length multiplied by 2.
+
+Rounded shape (large radius).
+
+Add a subtle glow/shadow.
+
+Initial opacity 0.
+
+Define the fall keyframe animation.
+
+At 0%: opacity 0, translateY 0, rotate spin-start.
+
+At about 8%: opacity 1.
+
+At 100%: opacity 0, translateY 115vh, translateX by drift-x, rotate spin-start plus 760deg.
+
+Build a spawn function that creates N pieces.
+
+For each piece randomize:
+
+hue 0..359
+
+saturation 86..97
+
+lightness 52..69
+
+start-x 2..98 percent
+
+drift-x -11..11 vw
+
+piece-width 0.2..0.55 rem
+
+piece-length 0.7..2.8 rem
+
+spin-start 0..359 deg
+
+duration 1.8..4.0 s
+
+delay 0..0.3 s
+
+Apply these values as CSS custom properties.
+
+Set background color from HSL.
+
+Remove each piece on animation end.
+
+Build a start function for celebration confetti.
+
+Clear any previous interval and existing pieces.
+
+Spawn 24 pieces immediately.
+
+Start repeating timer every 220 ms.
+
+On each tick spawn 10 pieces.
+
+Build a stop function.
+
+Clear timer.
+
+Remove all existing confetti nodes.
+
+Trigger timing for your scene.
+
+Start confetti at the winner-reveal moment.
+
+If you match your current timing exactly, call it when rank reveal appears (about 5s after end overlay activation in your flow).

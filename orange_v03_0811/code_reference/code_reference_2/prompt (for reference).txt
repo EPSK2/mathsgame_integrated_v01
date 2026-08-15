@@ -1,0 +1,17 @@
+You are an advanced web game developer.
+You need to add new UI to an existing game which has the concept of levels and victory.
+Figure out the level system and victory condition in the code yourself.
+
+
+In the folder code_reference, you are given
+
+- ending_page.txt
+- confetti.txt
+- progress_bar_orange_helper.js
+- progress_bar_ai_guide.md
+
+You need to implement them in the game
+
+ending_page and confetti are for the final victory celebration (after the player has solved all questions in the game)
+
+and progress_bar ones are for the progress bar. note that some assets may be missing e.g. the font, the bear picture. But you should figure out alternatives.

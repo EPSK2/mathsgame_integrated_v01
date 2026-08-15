@@ -16,6 +16,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "NotoEmoji-Regular";
+  src: url("../NotoEmoji-Regular.ttf") format("truetype");
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+}
+
 *,
 *::before,
 *::after {
@@ -83,6 +91,7 @@ body::before {
   text-decoration: none;
   background: transparent;
   border: 0;
+  font-family: "NotoEmoji-Regular", "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif !important;
 }
 
 .ui-home-icon {
@@ -221,6 +230,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: "NotoEmoji-Regular", "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif !important;
   cursor: pointer;
   pointer-events: auto;
 }

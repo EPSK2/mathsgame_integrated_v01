@@ -1,0 +1,399 @@
+
+<!DOCTYPE html><html><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;"><meta http-equiv="x-dns-prefetch-control" content="off"><script src="https://puc.poecdn.net/authenticated_preview_page/standard.3ef2c256959faf5a756d.js"></script>
+    <meta charset="utf-8">
+    <title>Poe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden !important;
+        overscroll-behavior: none !important;
+        overscroll-behavior-y: none !important;
+        touch-action: none !important;
+      }
+    </style>
+  <script src="https://puc.poecdn.net/authenticated_preview_page/disableWebRTC.9710cebe07429a9e8e06.js"></script><meta name="x-poe-allow-downloads" content="true"><meta name="x-poe-datastore-behavior" content="disabled"><script src="https://puc.poecdn.net/authenticated_preview_page/tw.b9024aecac666455e183.js"></script><script src="https://puc.poecdn.net/authenticated_preview_page/deps.faccd16000d314dc16d5.js"></script><script src="https://puc.poecdn.net/authenticated_preview_page/exports.b0f0f482cdeb5302b0b9.js"></script><script src="https://puc.poecdn.net/authenticated_preview_page/renderer.75c73ae6b4235f62945a.js"></script><script>Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }var _react = require('react'); var _react2 = _interopRequireDefault(_react);
+var _framermotion = require('framer-motion');
+var _lucidereact = require('lucide-react');
+
+// --- 音效產生器 ---
+const playSound = (type) => {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    osc.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+      gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(200, ctx.currentTime);
+      gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } else if (type === 'win') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.setValueAtTime(554.37, ctx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.2);
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.3);
+      gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.6);
+    }
+  } catch (e) {
+    console.log("Audio not supported or blocked");
+  }
+};
+
+ function MakeTenGame() {
+  // 遊戲狀態: intro -> beginner -> transition -> advanced -> success
+  const [gameState, setGameState] = _react.useState.call(void 0, 'intro'); 
+  const [message, setMessage] = _react.useState.call(void 0, '');
+  const [showSuccessAnim, setShowSuccessAnim] = _react.useState.call(void 0, false);
+
+  // 初階版狀態
+  const [begQuestionIndex, setBegQuestionIndex] = _react.useState.call(void 0, 0);
+  const [begTarget, setBegTarget] = _react.useState.call(void 0, 0);
+  const [begOptions, setBegOptions] = _react.useState.call(void 0, []);
+  const [begWrongShake, setBegWrongShake] = _react.useState.call(void 0, false);
+
+  // 進階版狀態
+  const [numbers, setNumbers] = _react.useState.call(void 0, []);
+  const [selectedIds, setSelectedIds] = _react.useState.call(void 0, []);
+  const [isChecking, setIsChecking] = _react.useState.call(void 0, false);
+
+  // --- 初階版邏輯 ---
+  const generateBeginnerQuestion = _react.useCallback.call(void 0, () => {
+    const target = Math.floor(Math.random() * 10); // 0-9
+    const correct = 10 - target;
+    let wrong = Math.floor(Math.random() * 11);
+    while (wrong === correct) {
+      wrong = Math.floor(Math.random() * 11);
+    }
+    const options = Math.random() > 0.5 ? [correct, wrong] : [wrong, correct];
+    setBegTarget(target);
+    setBegOptions(options);
+  }, []);
+
+  const startBeginner = () => {
+    setBegQuestionIndex(0);
+    generateBeginnerQuestion();
+    setGameState('beginner');
+    setMessage('初階任務：選出能合十的數字！');
+  };
+
+  const handleBeginnerAnswer = (answer) => {
+    if (begTarget + answer === 10) {
+      playSound('correct');
+      setShowSuccessAnim(true);
+      setMessage('射中啦！🍓');
+      
+      setTimeout(() => {
+        setShowSuccessAnim(false);
+        if (begQuestionIndex < 4) { // 共5題 (0,1,2,3,4)
+          setBegQuestionIndex(prev => prev + 1);
+          generateBeginnerQuestion();
+          setMessage('繼續尋找下一個！');
+        } else {
+          playSound('win');
+          setGameState('transition');
+        }
+      }, 1200);
+    } else {
+      playSound('wrong');
+      setBegWrongShake(true);
+      setMessage('哎呀！不對喔！');
+      setTimeout(() => setBegWrongShake(false), 500);
+    }
+  };
+
+  // --- 進階版邏輯 ---
+  const startAdvanced = () => {
+    // 6對組合 (涵蓋 0+10 到 5+5)
+    const basePairs = [
+      [0, 10], [1, 9], [2, 8], [3, 7], [4, 6], [5, 5]
+    ];
+    
+    let flatNumbers = basePairs.flat().map((value, index) => ({
+      id: index,
+      value: value,
+      isMatched: false,
+      isWrong: false
+    }));
+
+    // 洗牌
+    for (let i = flatNumbers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [flatNumbers[i], flatNumbers[j]] = [flatNumbers[j], flatNumbers[i]];
+    }
+
+    setNumbers(flatNumbers);
+    setSelectedIds([]);
+    setMessage('進階任務：找出所有合十的配對！');
+    setGameState('advanced');
+  };
+
+  const handleAdvancedClick = (id) => {
+    if (isChecking || selectedIds.includes(id)) return;
+    
+    const clickedNumber = numbers.find(n => n.id === id);
+    if (clickedNumber.isMatched) return;
+
+    const newSelected = [...selectedIds, id];
+    setSelectedIds(newSelected);
+
+    if (newSelected.length === 2) {
+      setIsChecking(true);
+      const num1 = numbers.find(n => n.id === newSelected[0]);
+      const num2 = numbers.find(n => n.id === newSelected[1]);
+
+      if (num1.value + num2.value === 10) {
+        playSound('correct');
+        setShowSuccessAnim(true);
+        setMessage(`咻！🍓 射中了 ${num1.value} 和 ${num2.value}！`);
+        
+        setTimeout(() => {
+          setShowSuccessAnim(false);
+          setNumbers(prev => prev.map(n => 
+            newSelected.includes(n.id) ? { ...n, isMatched: true } : n
+          ));
+          setSelectedIds([]);
+          setIsChecking(false);
+          setMessage('太棒了！繼續尋找下一對！');
+        }, 1000);
+      } else {
+        playSound('wrong');
+        setMessage(`哎呀！${num1.value} + ${num2.value} 不是 10 喔！`);
+        setNumbers(prev => prev.map(n => 
+          newSelected.includes(n.id) ? { ...n, isWrong: true } : n
+        ));
+        
+        setTimeout(() => {
+          setNumbers(prev => prev.map(n => 
+            newSelected.includes(n.id) ? { ...n, isWrong: false } : n
+          ));
+          setSelectedIds([]);
+          setIsChecking(false);
+          setMessage('請選出兩個加起來等於 10 的數字精靈！');
+        }, 800);
+      }
+    }
+  };
+
+  // 檢查進階版是否過關
+  _react.useEffect.call(void 0, () => {
+    if (gameState === 'advanced' && numbers.length > 0 && numbers.every(n => n.isMatched)) {
+      setTimeout(() => {
+        playSound('win');
+        setGameState('success');
+      }, 500);
+    }
+  }, [numbers, gameState]);
+
+  // 成功動畫覆蓋層
+  const SuccessOverlay = () => (
+    _react2.default.createElement(_framermotion.AnimatePresence, null
+      , showSuccessAnim && (
+        _react2.default.createElement(_framermotion.motion.div, { 
+          initial: { opacity: 0, scale: 0.5 },
+          animate: { opacity: 1, scale: 1 },
+          exit: { opacity: 0, scale: 1.5 },
+          className: "absolute inset-0 z-50 flex items-center justify-center pointer-events-none"      ,}
+
+          , _react2.default.createElement('div', { className: "relative",}
+            , _react2.default.createElement(_framermotion.motion.div, { animate: { rotate: 360 }, transition: { duration: 2, repeat: Infinity, ease: "linear" },}
+              , _react2.default.createElement(_lucidereact.Star, { size: 100, className: "text-yellow-400 fill-yellow-400 opacity-50"  ,} )
+            )
+            , _react2.default.createElement('div', { className: "absolute inset-0 flex items-center justify-center text-5xl"     ,}, "🍓")
+          )
+        )
+      )
+    )
+  );
+
+  return (
+    _react2.default.createElement('div', { className: "min-h-screen bg-pink-50 flex items-center justify-center p-4 font-sans"      ,}
+      , _react2.default.createElement('div', { className: "max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-pink-200 relative"        ,}
+
+        /* 標題區 */
+        , _react2.default.createElement('div', { className: "bg-gradient-to-r from-pink-400 to-red-400 p-6 text-white text-center relative overflow-hidden"       ,}
+          , _react2.default.createElement(_framermotion.motion.div, { 
+            animate: { rotate: 360 }, 
+            transition: { duration: 20, repeat: Infinity, ease: "linear" },
+            className: "absolute -top-10 -right-10 opacity-20"   ,}
+
+            , _react2.default.createElement(_lucidereact.Sparkles, { size: 120,} )
+          )
+          , _react2.default.createElement('h1', { className: "text-2xl font-bold mb-2 relative z-10 flex items-center justify-center gap-2"        ,}, "🍓 水果熊的幻術考驗"
+
+          )
+          , _react2.default.createElement('p', { className: "text-pink-100 text-sm relative z-10"   ,}, "尋找合十的數字精靈")
+        )
+
+        /* 遊戲內容區 */
+        , _react2.default.createElement('div', { className: "p-6 relative min-h-[400px] flex flex-col justify-center"     ,}
+          , _react2.default.createElement(SuccessOverlay, null )
+
+          , _react2.default.createElement(_framermotion.AnimatePresence, { mode: "wait",}
+
+            /* 1. 故事前導 */
+            , gameState === 'intro' && (
+              _react2.default.createElement(_framermotion.motion.div, { key: "intro", initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "text-center space-y-6" ,}
+                , _react2.default.createElement('div', { className: "text-6xl mb-4" ,}, "🐻✨🧚‍♂️")
+                , _react2.default.createElement('div', { className: "bg-pink-50 p-4 rounded-2xl text-gray-700 leading-relaxed text-left border border-pink-100"       ,}
+                  , _react2.default.createElement('p', { className: "mb-2",}, "「3」和「7」數字精靈為逃避水果熊的追捕，施展了幻術！")
+                  , _react2.default.createElement('p', { className: "font-bold text-pink-600" ,}, "請幫助水果熊，把「合起來等於 10」的數字精靈，用士多啤梨弓箭串起來！" )
+                )
+                , _react2.default.createElement('button', { onClick: startBeginner, className: "w-full py-4 bg-pink-500 hover:bg-pink-600 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-colors shadow-md active:scale-95"              ,}, "開始第一關挑戰 "
+                   , _react2.default.createElement(_lucidereact.Target, { size: 24,} )
+                )
+              )
+            )
+
+            /* 2. 初階版 */
+            , gameState === 'beginner' && (
+              _react2.default.createElement(_framermotion.motion.div, { key: "beginner", initial: { opacity: 0, x: 50 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -50 }, className: "flex flex-col items-center w-full"   ,}
+                , _react2.default.createElement('div', { className: "mb-4 text-pink-500 font-bold flex gap-1"    ,}
+                  , [...Array(5)].map((_, i) => (
+                    _react2.default.createElement(_lucidereact.Heart, { key: i, size: 20, className: i < begQuestionIndex ? "fill-pink-500" : "text-pink-200",} )
+                  ))
+                )
+                , _react2.default.createElement('div', { className: "mb-6 h-8 flex items-center justify-center w-full bg-pink-100 rounded-full text-pink-700 font-medium px-4 text-sm"           ,}
+                  , message
+                )
+
+                , _react2.default.createElement('div', { className: "flex items-center justify-center gap-4 mb-8"    ,}
+                  , _react2.default.createElement(_framermotion.motion.div, { animate: begWrongShake ? { x: [-10, 10, -10, 10, 0] } : {}, className: "w-24 h-24 bg-pink-50 rounded-2xl border-4 border-pink-300 flex items-center justify-center text-4xl font-bold text-pink-600 shadow-inner"            ,}
+                    , begTarget
+                  )
+                  , _react2.default.createElement('div', { className: "text-3xl font-bold text-gray-300"  ,}, "+")
+                  , _react2.default.createElement('div', { className: "w-24 h-24 border-4 border-dashed border-gray-300 rounded-2xl flex items-center justify-center text-4xl text-gray-300"          ,}, "?"
+
+                  )
+                )
+
+                , _react2.default.createElement('div', { className: "grid grid-cols-2 gap-4 w-full"   ,}
+                  , begOptions.map((opt, idx) => (
+                    _react2.default.createElement(_framermotion.motion.button, {
+                      key: idx,
+                      whileHover: { scale: 1.05 },
+                      whileTap: { scale: 0.95 },
+                      onClick: () => handleBeginnerAnswer(opt),
+                      className: "py-6 bg-white border-2 border-pink-200 rounded-2xl text-3xl font-bold text-gray-700 hover:border-pink-400 hover:bg-pink-50 shadow-sm"          ,}
+
+                      , opt
+                    )
+                  ))
+                )
+              )
+            )
+
+            /* 3. 過渡畫面 */
+            , gameState === 'transition' && (
+              _react2.default.createElement(_framermotion.motion.div, { key: "transition", initial: { opacity: 0, scale: 0.8 }, animate: { opacity: 1, scale: 1 }, className: "text-center space-y-6" ,}
+                , _react2.default.createElement('div', { className: "text-6xl",}, "🎯🍓")
+                , _react2.default.createElement('h2', { className: "text-2xl font-bold text-pink-600"  ,}, "第一關成功通關!")
+                , _react2.default.createElement('p', { className: "text-gray-600",}, "你已經掌握了合十的技巧，", _react2.default.createElement('br', null), "現在水果熊要面對真正的幻術大陣了！")
+                , _react2.default.createElement('button', { onClick: startAdvanced, className: "w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-colors shadow-md active:scale-95"              ,}, "進入進階幻術陣 "
+                   , _react2.default.createElement(_lucidereact.ArrowRight, { size: 24,} )
+                )
+              )
+            )
+
+            /* 4. 進階版 */
+            , gameState === 'advanced' && (
+              _react2.default.createElement(_framermotion.motion.div, { key: "advanced", initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "flex flex-col items-center"  ,}
+                , _react2.default.createElement('div', { className: "mb-6 h-8 flex items-center justify-center w-full bg-pink-100 rounded-full text-pink-700 font-medium px-4 text-sm"           ,}
+                  , message
+                )
+
+                , _react2.default.createElement('div', { className: "grid grid-cols-4 gap-3 w-full mb-4"    ,}
+                  , numbers.map((num) => (
+                    _react2.default.createElement(_framermotion.motion.button, {
+                      key: num.id,
+                      onClick: () => handleAdvancedClick(num.id),
+                      disabled: num.isMatched,
+                      whileHover: !num.isMatched && !isChecking ? { scale: 1.05 } : {},
+                      whileTap: !num.isMatched && !isChecking ? { scale: 0.95 } : {},
+                      animate: {
+                        scale: num.isMatched ? 0 : 1,
+                        rotate: num.isWrong ? [-10, 10, -10, 10, 0] : 0,
+                        backgroundColor: num.isMatched 
+                          ? "#fdf2f8" 
+                          : selectedIds.includes(num.id) 
+                            ? "#f43f5e" 
+                            : num.isWrong 
+                              ? "#ef4444" 
+                              : "#ffffff"
+                      },
+                      className: `
+                        aspect-square rounded-2xl flex items-center justify-center text-2xl font-bold shadow-sm border-2
+                        ${num.isMatched ? 'opacity-0' : 'opacity-100'}
+                        ${selectedIds.includes(num.id) ? 'text-white border-rose-600 shadow-inner' : 'text-gray-700 border-pink-200'}
+                      `,}
+
+                      , selectedIds.includes(num.id) ? (
+                        _react2.default.createElement('div', { className: "relative flex items-center justify-center"   ,}
+                          , _react2.default.createElement('span', { className: "absolute -top-5 text-xs"  ,}, "🍓")
+                          , num.value
+                        )
+                      ) : (
+                        num.value
+                      )
+                    )
+                  ))
+                )
+              )
+            )
+
+            /* 5. 成功過關 */
+            , gameState === 'success' && (
+              _react2.default.createElement(_framermotion.motion.div, { key: "success", initial: { opacity: 0, scale: 0.8 }, animate: { opacity: 1, scale: 1 }, className: "text-center space-y-6" ,}
+                , _react2.default.createElement(_framermotion.motion.div, { animate: { y: [0, -20, 0] }, transition: { repeat: Infinity, duration: 2 }, className: "text-7xl flex justify-center gap-4"   ,}
+                  , _react2.default.createElement('span', null, "🐻"), _react2.default.createElement('span', null, "🍓")
+                  , _react2.default.createElement('div', { className: "relative",}
+                    , _react2.default.createElement('span', { className: "absolute -top-4 -left-4 text-2xl"   ,}, "✨")
+                    , _react2.default.createElement('span', { className: "bg-pink-100 rounded-full w-16 h-16 flex items-center justify-center text-pink-600 font-bold text-3xl border-4 border-pink-300"           ,}, "3")
+                  )
+                  , _react2.default.createElement('div', { className: "relative",}
+                    , _react2.default.createElement('span', { className: "absolute -bottom-4 -right-4 text-2xl"   ,}, "✨")
+                    , _react2.default.createElement('span', { className: "bg-pink-100 rounded-full w-16 h-16 flex items-center justify-center text-pink-600 font-bold text-3xl border-4 border-pink-300"           ,}, "7")
+                  )
+                )
+
+                , _react2.default.createElement('div', { className: "space-y-2",}
+                  , _react2.default.createElement('h2', { className: "text-2xl font-bold text-pink-600"  ,}, "魔法完全破除了！")
+                  , _react2.default.createElement('p', { className: "text-gray-600",}, "水果熊成功串起了所有合十的數字，", _react2.default.createElement('br', null), "終於抓到調皮的「3」和「7」啦！")
+                )
+
+                , _react2.default.createElement('button', { onClick: () => setGameState('intro'), className: "mt-8 w-full py-4 bg-pink-500 hover:bg-pink-600 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-colors shadow-md"              ,}
+                  , _react2.default.createElement(_lucidereact.RefreshCcw, { size: 20,} ), " 再玩一次"
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+} exports.default = MakeTenGame;
+</script></head>
+  <body>
+  
+
+<div id="preview-app"></div></body></html>

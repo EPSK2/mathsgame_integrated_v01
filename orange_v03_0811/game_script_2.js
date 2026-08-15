@@ -44,6 +44,174 @@ let giftKeySequenceTimers = [];
 let giftInputRestoreTimer = null;
 let giftButtonsLocked = false;
 
+const GAME_GUIDE_OVERLAY_TARGET_SELECTORS = {
+  progress: ["#questionProgress"],
+};
+
+let gameGuideOverlayVisible = false;
+let gameGuideOverlayResizeRafId = 0;
+
+function getVisibleUnionRect(selectors) {
+  const elements = [];
+  selectors.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((el) => {
+      elements.push(el);
+    });
+  });
+
+  let left = Number.POSITIVE_INFINITY;
+  let top = Number.POSITIVE_INFINITY;
+  let right = Number.NEGATIVE_INFINITY;
+  let bottom = Number.NEGATIVE_INFINITY;
+  let hasVisible = false;
+
+  elements.forEach((el) => {
+    const style = window.getComputedStyle(el);
+    if (style.display === "none" || style.visibility === "hidden") {
+      return;
+    }
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) {
+      return;
+    }
+
+    left = Math.min(left, rect.left);
+    top = Math.min(top, rect.top);
+    right = Math.max(right, rect.right);
+    bottom = Math.max(bottom, rect.bottom);
+    hasVisible = true;
+  });
+
+  if (!hasVisible) {
+    return null;
+  }
+
+  return { left, top, right, bottom };
+}
+
+function setGameGuideFocusTargets(enabled) {
+  const seen = new Set();
+  Object.values(GAME_GUIDE_OVERLAY_TARGET_SELECTORS).forEach((selectors) => {
+    selectors.forEach((selector) => {
+      document.querySelectorAll(selector).forEach((el) => {
+        if (seen.has(el)) {
+          return;
+        }
+        seen.add(el);
+        if (enabled) {
+          el.classList.add("game-guide-focus-target");
+        } else {
+          el.classList.remove("game-guide-focus-target");
+        }
+      });
+    });
+  });
+}
+
+function updateGameGuideOverlayHighlights() {
+  if (!gameGuideOverlayVisible) {
+    return;
+  }
+
+  const pad = 10;
+  Object.keys(GAME_GUIDE_OVERLAY_TARGET_SELECTORS).forEach((highlightKey) => {
+    const boxEl = document.querySelector(`.game-guide-highlight[data-highlight="${highlightKey}"]`);
+    if (!boxEl) {
+      return;
+    }
+
+    const rect = getVisibleUnionRect(GAME_GUIDE_OVERLAY_TARGET_SELECTORS[highlightKey]);
+    if (!rect) {
+      boxEl.style.display = "none";
+      return;
+    }
+
+    const left = Math.max(0, rect.left - pad);
+    const top = Math.max(0, rect.top - pad);
+    const width = Math.max(1, rect.right - rect.left + pad * 2);
+    const height = Math.max(1, rect.bottom - rect.top + pad * 2);
+
+    boxEl.style.display = "block";
+    boxEl.style.left = `${left}px`;
+    boxEl.style.top = `${top}px`;
+    boxEl.style.width = `${width}px`;
+    boxEl.style.height = `${height}px`;
+  });
+
+  const progressCaption = document.getElementById("gameGuideOverlayProgressText");
+  const progressRect = getVisibleUnionRect(GAME_GUIDE_OVERLAY_TARGET_SELECTORS.progress);
+  if (progressCaption && progressRect) {
+    const captionTop = progressRect.bottom + 60;
+    const captionRight = Math.max(0, window.innerWidth - progressRect.right);
+    progressCaption.style.top = `${captionTop}px`;
+    progressCaption.style.right = `${captionRight}px`;
+  }
+}
+
+function onGameGuideOverlayResize() {
+  if (!gameGuideOverlayVisible) {
+    return;
+  }
+  if (gameGuideOverlayResizeRafId) {
+    window.cancelAnimationFrame(gameGuideOverlayResizeRafId);
+  }
+  gameGuideOverlayResizeRafId = window.requestAnimationFrame(() => {
+    gameGuideOverlayResizeRafId = 0;
+    updateGameGuideOverlayHighlights();
+  });
+}
+
+function showGameGuideOverlay(onStart) {
+  const overlay = document.getElementById("gameGuideOverlay");
+  const startButton = document.getElementById("gameGuideOverlayStartButton");
+  if (!overlay) {
+    if (typeof onStart === "function") {
+      onStart();
+    }
+    return;
+  }
+
+  const begin = function (event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (startButton) {
+      startButton.removeEventListener("click", begin);
+    }
+
+    overlay.classList.remove("is-visible");
+    overlay.setAttribute("aria-hidden", "true");
+    gameGuideOverlayVisible = false;
+    setGameGuideFocusTargets(false);
+    window.removeEventListener("resize", onGameGuideOverlayResize);
+
+    window.setTimeout(() => {
+      overlay.classList.add("hidden");
+      if (typeof onStart === "function") {
+        onStart();
+      }
+    }, 220);
+  };
+
+  overlay.classList.remove("hidden");
+  overlay.setAttribute("aria-hidden", "false");
+  void overlay.offsetWidth;
+  overlay.classList.add("is-visible");
+
+  gameGuideOverlayVisible = true;
+  setGameGuideFocusTargets(true);
+  updateGameGuideOverlayHighlights();
+  window.addEventListener("resize", onGameGuideOverlayResize);
+
+  if (startButton) {
+    startButton.addEventListener("click", begin);
+  } else {
+    overlay.addEventListener("click", begin, { once: true });
+  }
+}
+
 // URL sanitisation and safe HTMLMediaElement playback helpers.
 // These are shared across game_2 and menu_2 to prevent corrupt URLs
 // (e.g. containing %00) and to centralise play() promise handling.
@@ -648,6 +816,10 @@ function initClawMachinePNG() {
     return;
   }
 
+  const clawVisual = document.createElement("div");
+  clawVisual.className = "claw-machine-visual";
+  img.replaceChildren(clawVisual);
+
   const leftCog = document.getElementById("leftCog");
   const rightCog = document.getElementById("rightCog");
   let cogAngleDeg = 0;
@@ -731,7 +903,8 @@ function initClawMachinePNG() {
 
 
   // Ensure the clamp image starts in the open state.
-  img.style.backgroundImage = `url(${clawSrcOpen})`;
+  img.style.backgroundImage = "none";
+  clawVisual.style.backgroundImage = `url(${clawSrcOpen})`;
 
   // Warm the spritesheet once to reduce first-play hitching.
   preloadImageAsset(clawSheetUrl);
@@ -744,6 +917,9 @@ function initClawMachinePNG() {
   img.style.outline = "none";
   img.style.padding = "0";
   img.style.display = "block";
+  clawVisual.style.position = "absolute";
+  clawVisual.style.inset = "0";
+  clawVisual.style.transformOrigin = "50% 50%";
 
   function showClawOpenVisual() {
     if (!img) {
@@ -751,11 +927,12 @@ function initClawMachinePNG() {
     }
 
     img.dataset.clawVisualMode = "open";
-    img.style.backgroundImage = `url(${clawSrcOpen})`;
-    img.style.backgroundSize = "contain";
-    img.style.backgroundPosition = "50% 50%";
-    img.style.backgroundRepeat = "no-repeat";
-    img.style.backgroundColor = "transparent";
+  clawVisual.style.backgroundImage = `url(${clawSrcOpen})`;
+  clawVisual.style.backgroundSize = "contain";
+  clawVisual.style.backgroundPosition = "50% 50%";
+  clawVisual.style.backgroundRepeat = "no-repeat";
+  clawVisual.style.backgroundColor = "transparent";
+  clawVisual.style.transform = "scale(1)";
   }
 
   function resetClawToOpenVisual() {
@@ -786,12 +963,11 @@ function initClawMachinePNG() {
 
     if (img.dataset.clawVisualMode !== "sheet") {
       img.dataset.clawVisualMode = "sheet";
-      img.style.backgroundColor = "transparent";
+      clawVisual.style.backgroundColor = "transparent";
     }
 
-    const rect = img.getBoundingClientRect();
-    let frameDisplayWidth = Math.round(rect.width);
-    let frameDisplayHeight = Math.round(rect.height);
+    let frameDisplayWidth = Math.round(img.clientWidth);
+    let frameDisplayHeight = Math.round(img.clientHeight);
 
     if (!(frameDisplayWidth > 0) || !(frameDisplayHeight > 0)) {
       const computed = window.getComputedStyle(img);
@@ -805,10 +981,11 @@ function initClawMachinePNG() {
       frameDisplayHeight = fallbackSize;
     }
 
-    img.style.backgroundImage = `url(${clawSheetUrl})`;
-    img.style.backgroundSize = `${frameDisplayWidth * clawSheetColumns}px ${frameDisplayHeight * clawSheetRows}px`;
-    img.style.backgroundPosition = `${-col * frameDisplayWidth}px ${-row * frameDisplayHeight}px`;
-    img.style.backgroundRepeat = "no-repeat";
+    clawVisual.style.backgroundImage = `url(${clawSheetUrl})`;
+    clawVisual.style.backgroundSize = `${frameDisplayWidth * clawSheetColumns}px ${frameDisplayHeight * clawSheetRows}px`;
+    clawVisual.style.backgroundPosition = `${-col * frameDisplayWidth}px ${-row * frameDisplayHeight}px`;
+    clawVisual.style.backgroundRepeat = "no-repeat";
+    clawVisual.style.transform = shouldRotateClawDuringClose ? "scale(1.2)" : "scale(1)";
   }
 
   function startClawCloseSpritesheet() {
@@ -1755,9 +1932,8 @@ function initClawMachinePNG() {
         ? clawCloseRotationDirection * (Math.PI / 12)
         : 0);
 
-    // Minimal visual fix: slightly reduce scale while rotating so the
-    // claw edges do not get clipped by frame bounds.
-    const clawVisualScale = Math.abs(clawRotationRad) > 0.001 ? 0.96 : 1;
+    // Keep scale constant; clipping is handled by a larger CSS frame.
+    const clawVisualScale = 1;
 
     // Apply transform including vertical offset.
     img.style.transform =
@@ -1782,10 +1958,10 @@ function initClawMachinePNG() {
       rodLineEl.style.background =
         "linear-gradient(to bottom, #000000 0%, #222222 40%, #111111 100%)";
       rodLineEl.style.boxShadow =
-        "0 0.3vh 0.8vh rgba(0, 0, 0, 0.9), " +
-        "0 -0.1vh 0.4vh rgba(255, 255, 255, 0.18), " +
-        "inset 0 0.1vh 0.2vh rgba(255, 255, 255, 0.2), " +
-        "inset 0 -0.1vh 0.2vh rgba(0, 0, 0, 0.7)";
+        "0 0.3dvh 0.8dvh rgba(0, 0, 0, 0.9), " +
+        "0 -0.1dvh 0.4dvh rgba(255, 255, 255, 0.18), " +
+        "inset 0 0.1dvh 0.2dvh rgba(255, 255, 255, 0.2), " +
+        "inset 0 -0.1dvh 0.2dvh rgba(0, 0, 0, 0.7)";
       document.body.appendChild(rodLineEl);
     }
 
@@ -2879,7 +3055,7 @@ function buildRandomProgressParticles() {
     const color = colors[Math.floor(Math.random() * colors.length)];
 
     dot.style.setProperty("--particle-left", `${left}%`);
-    dot.style.setProperty("--particle-size", `${size}vh`);
+    dot.style.setProperty("--particle-size", `${size}dvh`);
     dot.style.setProperty("--particle-duration", `${duration}s`);
     dot.style.setProperty("--particle-delay", `${delay}s`);
     dot.style.setProperty("--particle-drift-x", `${drift}px`);
@@ -2960,20 +3136,37 @@ function animateQuestionProgressIncrement() {
 
     const nextStep = questionProgressStep + 1;
     const transitionSlowdown = 1.5;
+    const currentStepIndex = Math.min(questionProgressStep, questionProgressCircles.length - 1);
+    const destinationIndex = Math.min(nextStep, questionProgressCircles.length - 1);
 
-    // Replace the old between-question waiting gap with a centered progress cue.
+    // Step 1: hide the token while the progress bar recenters.
+    if (questionProgressToken) {
+      questionProgressToken.classList.add("is-hidden-during-return");
+    }
+
+    // Move the whole progress bar to the centre. Dot spacing will change
+    // significantly during this phase, so we do not rely on any previous
+    // coordinates.
     if (questionProgressRoot) {
       questionProgressRoot.classList.add("is-centered-transition");
     }
+
+    // Give the centred layout time to settle before we query circle
+    // positions. This ensures the token re-spawns using the *new* dot
+    // separation instead of the old geometry.
     await waitMs(Math.round(350 * transitionSlowdown));
 
+    // Step 2: re-spawn the token directly on the current node in the
+    // centred layout (no animation).
+    setProgressTokenToCircle(currentStepIndex, false);
+
     if (questionProgressToken) {
+      questionProgressToken.classList.remove("is-hidden-during-return");
       questionProgressToken.style.setProperty("--question-progress-token-scale", "1.5");
     }
 
-    // Fill and token movement happen together.
+    // Step 3: animate fill + token from the current node to the next node.
     questionProgressFill.style.width = `${(nextStep / QUESTION_PROGRESS_TOTAL) * 90}%`;
-    const destinationIndex = Math.min(nextStep, questionProgressCircles.length - 1);
     const circle = questionProgressCircles[destinationIndex];
     setProgressTokenToCircle(destinationIndex, true);
 
@@ -2999,6 +3192,9 @@ function animateQuestionProgressIncrement() {
     }
     await waitMs(Math.round(220 * transitionSlowdown));
 
+    // Step 4: return the bar to its normal position, hide the token while
+    // dots re-space, then snap the token back onto the destination circle
+    // in the bottom layout.
     if (questionProgressRoot) {
       if (questionProgressToken) {
         questionProgressToken.classList.add("is-hidden-during-return");
@@ -3011,11 +3207,13 @@ function animateQuestionProgressIncrement() {
     if (questionProgressToken) {
       questionProgressToken.classList.remove("is-hidden-during-return");
     }
+
     questionProgressStep = nextStep;
   });
 
   return questionProgressSequence;
 }
+
 
 
 function setSpeech(text) {
@@ -3259,7 +3457,7 @@ function updateGiftPanelTriangle() {
   const yTop = rect.top + rect.height * 0.8;
   const yBottom = rect.top + rect.height * 1;
 
-  // Third vertex at viewport coordinates: x = 45vw, y = 97.5vh.
+  // Third vertex at viewport coordinates: x = 45vw, y = 97.5dvh.
   const xThird = window.innerWidth * 0.45;
   const yThird = window.innerHeight * 0.925;
 
@@ -3572,10 +3770,17 @@ function handleGiftDigitClick(digit) {
   const parsed = parseInt(nextRaw, 10);
 
     // Overflow / out-of-range error indicator: show ＞ᨓ＜, then
-    // restore the stored number (or prompt face) after the error audio.
+    // clear input immediately and return to prompt face after the error audio.
     // The overflow detection algorithm itself is unchanged.
     if (!Number.isFinite(parsed) || parsed < 0 || parsed > max) {
       clearGiftInputRestoreTimer();
+      giftPanelState.inputValue = "";
+      if (giftMonitorInput) {
+        giftMonitorInput.textContent = "";
+      }
+      if (giftMonitor) {
+        giftMonitor.classList.remove("has-input");
+      }
       setGiftMonitorMessage("＞ᨓ＜", "error");
 
       // Range-specific human overflow guidance.
@@ -3584,16 +3789,8 @@ function handleGiftDigitClick(digit) {
 
     giftInputRestoreTimer = window.setTimeout(() => {
       giftInputRestoreTimer = null;
-      if (previous) {
-        setGiftMonitorMessage(previous, "normal");
-        if (giftMonitor) {
-          giftMonitor.classList.add("has-input");
-        }
-        giftPanelState.phase = "typing";
-      } else {
-        setGiftMonitorMessage("•ᴗ•", "normal");
-        giftPanelState.phase = "prompt";
-      }
+      setGiftMonitorMessage("•ᴗ•", "normal");
+      giftPanelState.phase = "prompt";
     }, 2400);
     return;
   }
@@ -3704,12 +3901,18 @@ function handleGiftMoveClick() {
   const max = getGiftPanelMaxValue();
   const value = parseInt(giftPanelState.inputValue, 10);
 
-    // Invalid value error: show ＞ᨓ＜, then restore the stored number
-    // (or prompt face) after the error audio. The overflow algorithm
+    // Invalid value error: show ＞ᨓ＜, then clear input immediately and
+    // return to prompt face after the error audio. The overflow algorithm
     // remains unchanged; this branch simply adds voice feedback.
     if (!Number.isFinite(value) || value < 0 || value > max) {
-      const stored = giftPanelState.inputValue || "";
       clearGiftInputRestoreTimer();
+      giftPanelState.inputValue = "";
+      if (giftMonitorInput) {
+        giftMonitorInput.textContent = "";
+      }
+      if (giftMonitor) {
+        giftMonitor.classList.remove("has-input");
+      }
       setGiftMonitorMessage("＞ᨓ＜", "error");
 
       // Range-specific human overflow guidance.
@@ -3718,16 +3921,8 @@ function handleGiftMoveClick() {
 
     giftInputRestoreTimer = window.setTimeout(() => {
       giftInputRestoreTimer = null;
-      if (stored) {
-        setGiftMonitorMessage(stored, "normal");
-        if (giftMonitor) {
-          giftMonitor.classList.add("has-input");
-        }
-        giftPanelState.phase = "typing";
-      } else {
-        setGiftMonitorMessage("•ᴗ•", "normal");
-        giftPanelState.phase = "prompt";
-      }
+      setGiftMonitorMessage("•ᴗ•", "normal");
+      giftPanelState.phase = "prompt";
     }, 2400);
     return;
   }
@@ -4267,7 +4462,7 @@ function playFairySuccessFlight() {
   }
 
   // Lemniscate of Bernoulli path mapped to viewport bounds:
-  // x range 10vw..90vw, y range 35vh..75vh.
+  // x range 10vw..90vw, y range 35dvh..75dvh.
   // Start exactly at center with +y and +x movement first.
   function pointAtProgress(progress01) {
     const theta = Math.PI / 2 - progress01 * Math.PI * 2;
@@ -4481,8 +4676,8 @@ function ensureFairyOptionsContainer() {
   container.id = "fairyOptionsContainer";
     container.style.position = "fixed";
   container.style.left = "0";
-  // Position the container so that the option centres sit at ~85vh.
-  container.style.top = "70vh";
+  // Position the container so that the option centres sit at ~85dvh.
+  container.style.top = "70dvh";
   container.style.width = "100%";
   container.style.display = "flex";
 
@@ -4528,18 +4723,19 @@ function showFairyOptionsForCurrentGift() {
 
   fairyOptionButtons = [];
 
-  const values = Math.random() < 0.5
-    ? [correctValue, alternativeValue]
-    : [alternativeValue, correctValue];
+  const values = [
+    Math.min(correctValue, alternativeValue),
+    Math.max(correctValue, alternativeValue),
+  ];
 
   values.forEach((value) => {
         const btn = document.createElement("button");
     btn.type = "button";
     btn.textContent = String(value);
 
-    // Base option size: 20vh high/wide, font-size 80% of height.
-    btn.style.height = "20vh";
-    btn.style.width = "20vh";
+    // Base option size: 20dvh high/wide, font-size 80% of height.
+    btn.style.height = "20dvh";
+    btn.style.width = "20dvh";
     btn.style.borderRadius = "50%";
     btn.style.backgroundColor = "#ffffff";
     btn.style.color = "#000000";
@@ -4547,9 +4743,9 @@ function showFairyOptionsForCurrentGift() {
     btn.style.alignItems = "center";
     btn.style.justifyContent = "center";
     btn.style.fontFamily = "Nightgazer16, system-ui, sans-serif";
-    btn.style.fontSize = "16vh";
-    btn.style.border = "0.4vh solid #dddddd";
-    btn.style.boxShadow = "0 0.5vh 1vh rgba(0,0,0,0.25)";
+    btn.style.fontSize = "16dvh";
+    btn.style.border = "0.4dvh solid #dddddd";
+    btn.style.boxShadow = "0 0.5dvh 1dvh rgba(0,0,0,0.25)";
     btn.style.cursor = "pointer";
     btn.style.transition = "all 0.6s ease";
     btn.style.transform = "scale(1)";
@@ -4569,18 +4765,18 @@ function showFairyOptionsForCurrentGift() {
     plate.style.display = "flex";
     plate.style.alignItems = "center";
     plate.style.justifyContent = "center";
-    plate.style.padding = "1.5vh";
-    plate.style.borderRadius = "2vh";
+    plate.style.padding = "1.5dvh";
+    plate.style.borderRadius = "2dvh";
     plate.style.background = "rgba(0, 0, 0, 0.12)";
-    plate.style.border = "0.5vh solid #000000";
+    plate.style.border = "0.5dvh solid #000000";
     plate.style.boxShadow =
-      "0 1vh 2vh rgba(0,0,0,0.35), " +
-      "0 -0.3vh 0.6vh rgba(255,255,255,0.3)";
+      "0 1dvh 2dvh rgba(0,0,0,0.35), " +
+      "0 -0.3dvh 0.6dvh rgba(255,255,255,0.3)";
     plate.style.transition = "all 0.6s ease";
     // Fix the plate height so that the option centre stays put even
     // when the circular button grows or shrinks.
-    plate.style.height = "28vh";
-    plate.style.width = "28vh";
+    plate.style.height = "28dvh";
+    plate.style.width = "28dvh";
     plate.style.boxSizing = "border-box";
     plate.style.overflow = "visible";
 
@@ -4607,12 +4803,12 @@ function handleFairyOptionClick(btn) {
     });
     setFairyAuraMood("lime");
     stopFairySurprisedReaction();
-    // Correct choice: grow to 25vh and turn green over 2 seconds.
+    // Correct choice: grow to 25dvh and turn green over 2 seconds.
     btn.style.backgroundColor = "#bbf7d0"; // light green
     btn.style.color = "#166534"; // dark green
-    btn.style.height = "25vh";
-    btn.style.width = "25vh";
-    btn.style.fontSize = "20vh"; // 80% of height
+    btn.style.height = "25dvh";
+    btn.style.width = "25dvh";
+    btn.style.fontSize = "20dvh"; // 80% of height
     btn.style.transform = "scale(1)";
 
     if (typeof window.playClawAttemptSuccess === "function") {
@@ -4631,13 +4827,13 @@ function handleFairyOptionClick(btn) {
       saveAttemptToHistory(activeGiftValue, selectedValue, rangeMin, rangeMax);
     }
 
-    // Wrong choice: shrink to 10vh and turn red over 2 seconds.
+    // Wrong choice: shrink to 10dvh and turn red over 2 seconds.
     btn.dataset.lockedWrong = "true";
     btn.style.backgroundColor = "#fecaca"; // light red
     btn.style.color = "#991b1b"; // dark red
-    btn.style.height = "10vh";
-    btn.style.width = "10vh";
-    btn.style.fontSize = "8vh"; // 80% of height
+    btn.style.height = "10dvh";
+    btn.style.width = "10dvh";
+    btn.style.fontSize = "8dvh"; // 80% of height
     btn.style.transform = "scale(1)";
     btn.style.pointerEvents = "none";
     btn.style.cursor = "default";
@@ -5022,7 +5218,7 @@ function renderNumberLine(scale) {
     tick.setAttribute("opacity", opacity);
     if (groupTicks === ticksGroup) {
       tick.style.filter =
-        "drop-shadow(1vh 0 0 #000) drop-shadow(-1vh 0 0 #000) drop-shadow(0 1vh 0 #000) drop-shadow(0 -1vh 0 #000)";
+        "drop-shadow(1dvh 0 0 #000) drop-shadow(-1dvh 0 0 #000) drop-shadow(0 1dvh 0 #000) drop-shadow(0 -1dvh 0 #000)";
     }
     groupTicks.appendChild(tick);
 
@@ -5239,12 +5435,20 @@ let victoryTimelineTimers = [];
 let victoryConfettiLayer = null;
 let victoryConfettiSpawnTimer = null;
 let victoryConfettiRunId = 0;
+const VICTORY_CONFETTI_DENSITY_FACTOR = 0.75;
+const VICTORY_CONFETTI_INITIAL_COUNT = Math.max(1, Math.round(24 * VICTORY_CONFETTI_DENSITY_FACTOR));
+const VICTORY_CONFETTI_LOOP_COUNT = Math.max(1, Math.round(10 * VICTORY_CONFETTI_DENSITY_FACTOR));
+let isPageVisibleForConfetti = !document.hidden;
 let victoryBearAnimator = null;
 let victoryMedalAudio = null;
 let victoryMedalFadeAnimationId = null;
 let victoryAttemptsCountAnimationId = null;
 let pausedNormalMediaForVictory = [];
 let hasPausedNormalMediaForVictory = false;
+
+document.addEventListener("visibilitychange", () => {
+  isPageVisibleForConfetti = !document.hidden;
+});
 
 const victoryBearWaveDescriptor = {
   id: "orange-bear-victory-wave",
@@ -5306,6 +5510,10 @@ function ensureVictoryConfettiLayer() {
 }
 
 function spawnVictoryConfettiPieces(pieceCount) {
+  if (!isPageVisibleForConfetti) {
+    return;
+  }
+
   const layer = ensureVictoryConfettiLayer();
   if (!layer) {
     return;
@@ -5356,13 +5564,16 @@ function startVictoryConfettiLoop() {
     layer.innerHTML = "";
   }
 
-  spawnVictoryConfettiPieces(24);
+  spawnVictoryConfettiPieces(VICTORY_CONFETTI_INITIAL_COUNT);
 
   victoryConfettiSpawnTimer = window.setInterval(() => {
     if (runId !== victoryConfettiRunId) {
       return;
     }
-    spawnVictoryConfettiPieces(10);
+    if (!isPageVisibleForConfetti) {
+      return;
+    }
+    spawnVictoryConfettiPieces(VICTORY_CONFETTI_LOOP_COUNT);
   }, 220);
 }
 
@@ -5607,13 +5818,6 @@ function updateVictoryCelebrationLayout() {
   victoryBearSprite.style.top = `${bearCenter.y}px`;
   victoryBearSprite.style.transform = `translate(-50%, -50%) scale(${spriteScale})`;
 
-  if (victoryExtraText && !victoryExtraText.classList.contains("hidden")) {
-    const bearTopY = bearCenter.y - bearCenter.size * 0.5;
-    const extraTopY = bearTopY + bearCenter.size * 0.6;
-    victoryExtraText.style.left = `${bearCenter.x}px`;
-    victoryExtraText.style.top = `${extraTopY}px`;
-  }
-
   updateVictoryStarPositions();
 }
 
@@ -5632,11 +5836,17 @@ function resetVictoryAttemptsText() {
 
   victoryExtraText.classList.add("hidden");
   victoryExtraText.classList.remove("is-finalized");
-  if (victoryExtraTextValue) {
-    victoryExtraTextValue.textContent = "0次";
-  } else {
-    victoryExtraText.textContent = "0次";
+  const { rangeMin, rangeMax } = getCurrentRangeAndTolerance();
+  victoryExtraText.innerHTML = `<span class="victory-extra-mode">${rangeMin}至${rangeMax}</span><span class="victory-extra-attempts">0次嘗試</span>`;
+}
+
+function renderVictoryAttemptsText(value) {
+  if (!victoryExtraText) {
+    return;
   }
+  const safeValue = Math.max(0, Math.floor(Number(value) || 0));
+  const { rangeMin, rangeMax } = getCurrentRangeAndTolerance();
+  victoryExtraText.innerHTML = `<span class="victory-extra-mode">${rangeMin}至${rangeMax}</span><span class="victory-extra-attempts">${safeValue}次嘗試</span>`;
 }
 
 function startVictoryAttemptsCounter(totalAttempts, runId) {
@@ -5654,12 +5864,7 @@ function startVictoryAttemptsCounter(totalAttempts, runId) {
   victoryExtraText.classList.remove("is-finalized");
 
   const renderValue = (value) => {
-    const safeValue = Math.max(0, Math.floor(Number(value) || 0));
-    if (victoryExtraTextValue) {
-      victoryExtraTextValue.textContent = `${safeValue}次`;
-    } else {
-      victoryExtraText.textContent = `${safeValue}次`;
-    }
+    renderVictoryAttemptsText(value);
   };
 
   renderValue(0);
@@ -6232,6 +6437,7 @@ function playHumanOverflowVoiceForCurrentRange() {
 
   try {
     humanOverflowAudio.src = url;
+    humanOverflowAudio.playbackRate = 1.2;
     humanOverflowAudio.currentTime = 0;
     humanOverflowAudio.play();
   } catch (_) {
@@ -6942,6 +7148,10 @@ function returnToMenu() {
   }, 1200);
 }
 
+window.goToOrangeDialogue01 = function () {
+  returnToMenu();
+};
+
 // Bootstraps game-2 after all media and visual assets are ready.
 // This restores level-setting handling (range/tolerance), number-line
 // setup, run-state timer, and the first gift box.
@@ -7026,13 +7236,27 @@ async function bootstrapGame2() {
 
   // Once the game has finished bootstrapping, hide the preparation overlay.
   if (typeof window.hidePrepOverlay === "function") {
-    // When the overlay has completely disappeared, start looping background music.
+    // When prep is gone, show the game-specific guide overlay first.
     window.onPrepOverlayHidden = function () {
+      showGameGuideOverlay(function () {
+        if (typeof window.playPrepBgMusicLoop === "function") {
+          window.playPrepBgMusicLoop();
+        }
+        if (typeof window.playVoiceRoboticInput === "function") {
+          window.playVoiceRoboticInput();
+        }
+      });
+    };
+    window.hidePrepOverlay();
+  } else {
+    showGameGuideOverlay(function () {
       if (typeof window.playPrepBgMusicLoop === "function") {
         window.playPrepBgMusicLoop();
       }
-    };
-    window.hidePrepOverlay();
+      if (typeof window.playVoiceRoboticInput === "function") {
+        window.playVoiceRoboticInput();
+      }
+    });
   }
 }
 

@@ -86,6 +86,15 @@
     window.sanitizeMediaUrl = sanitizeMediaUrl;
   }
 
+  function getEffectivePlaybackRate(id, requestedPlaybackRate) {
+    const rawUrl = audioFiles[id];
+    const isHumanVoice = typeof rawUrl === "string" && /^voice_human_.*\.mp3$/i.test(rawUrl.trim());
+    if (isHumanVoice) {
+      return 1.2;
+    }
+    return typeof requestedPlaybackRate === "number" ? requestedPlaybackRate : 1;
+  }
+
   function unlockAudioContextOnFirstInteraction() {
     const unlock = function () {
       if (audioContext.state === "suspended") {
@@ -177,6 +186,8 @@
     const mediaEl = elementFallbacks[id];
     try { mediaEl.pause(); } catch (_) {}
     try { mediaEl.currentTime = typeof options.offset === "number" ? Math.max(0, options.offset) : 0; } catch (_) { mediaEl.currentTime = 0; }
+    const speed = getEffectivePlaybackRate(id, options.playbackRate);
+    mediaEl.playbackRate = speed;
 
     if (typeof window.safePlayMedia === "function") {
       window.safePlayMedia(mediaEl, url);
@@ -194,6 +205,7 @@
 
   function playBuffer(id, options) {
     options = options || {};
+    const playbackRate = getEffectivePlaybackRate(id, options.playbackRate);
     loadBuffer(id)
       .then(function (buffer) {
         if (!buffer) {
@@ -202,6 +214,7 @@
 
         const source = audioContext.createBufferSource();
         source.buffer = buffer;
+        source.playbackRate.value = playbackRate;
         source.connect(audioContext.destination);
         const offset = typeof options.offset === "number" ? options.offset : 0;
         const duration = options.duration;
@@ -248,6 +261,7 @@
 
         const source = audioContext.createBufferSource();
         source.buffer = buffer;
+        source.playbackRate.value = getEffectivePlaybackRate(id, options.playbackRate);
         source.connect(audioContext.destination);
         const offset = typeof options.offset === "number" ? options.offset : 0;
         const duration = options.duration;
@@ -372,6 +386,7 @@
         if (!buffer) return;
         const source = audioContext.createBufferSource();
         source.buffer = buffer;
+        source.playbackRate.value = getEffectivePlaybackRate(chosenId);
         source.connect(audioContext.destination);
         source.start(0);
         registerActiveSource(source);
@@ -427,9 +442,9 @@
     activeVictorySources.length = 0;
   };
 
-  window.playHintVoiceRound1 = function () { playBuffer("voiceHumanHint"); };
-  window.playHintVoiceRound2 = function () { playBuffer("voiceHumanHint2"); };
-  window.playVoiceRoboticInput = function () { playExclusiveInputErrorVoice("voiceHumanInput"); };
+  window.playHintVoiceRound1 = function () { playBuffer("voiceHumanHint", { playbackRate: 1.2 }); };
+  window.playHintVoiceRound2 = function () { playBuffer("voiceHumanHint2", { playbackRate: 1.2 }); };
+  window.playVoiceRoboticInput = function () { playExclusiveInputErrorVoice("voiceHumanInput", { playbackRate: 1.2 }); };
   window.playVoiceRoboticFail = function (diff) { window.playHumanInputError(diff); };
   window.playMoreStarVoice = function () { playBuffer("voiceMoreStar"); };
   window.stopHumanInputErrorVoice = stopHumanInputErrorVoice;

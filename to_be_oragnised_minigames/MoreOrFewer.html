@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>跳石過河</title>
+<style>
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  overscroll-behavior-y: none !important;
+  touch-action: none !important;
+}
+* {
+box-sizing: border-box;
+}
+
+body {
+font-family: "Microsoft JhengHei", "PingFang TC", Arial, sans-serif;
+background: linear-gradient(180deg, #ffe0b2 0%, #e0f7fa 100%);
+display: flex;
+flex-direction: column;
+align-items: center;
+margin: 0;
+padding: 15px;
+min-height: 100vh;
+user-select: none;
+}
+
+/* 標題與首頁選單樣式 */
+.main-title {
+color: #006064;
+margin: 10px 0 15px 0;
+font-size: 32px;
+text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+}
+
+.menu-card {
+width: 100%;
+max-width: 500px;
+background: rgba(255, 255, 255, 0.95);
+border-radius: 25px;
+padding: 25px 20px 30px;
+box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+text-align: center;
+margin-top: 10px;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 15px;
+}
+
+.menu-bear-avatar {
+width: 90px;
+height: 90px;
+filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+margin-bottom: -5px;
+}
+
+.menu-subtitle {
+font-size: 22px;
+font-weight: bold;
+color: #0288d1;
+}
+
+.btn-container {
+display: flex;
+flex-direction: column;
+gap: 15px;
+width: 100%;
+max-width: 320px;
+}
+
+.difficulty-btn {
+padding: 14px 20px;
+font-size: 20px;
+font-weight: bold;
+color: white;
+border: none;
+border-radius: 20px;
+cursor: pointer;
+transition: transform 0.2s, box-shadow 0.2s;
+box-shadow: 0 5px 0 rgba(0,0,0,0.15);
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.difficulty-btn:hover {
+transform: translateY(-3px);
+}
+
+.difficulty-btn:active {
+transform: translateY(2px);
+box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+}
+
+.btn-easy {
+background-color: #4caf50;
+border-bottom: 4px solid #2e7d32;
+}
+
+.btn-medium {
+background-color: #ff9800;
+border-bottom: 4px solid #e65100;
+}
+
+.btn-hard {
+background-color: #e53935;
+border-bottom: 4px solid #b71c1c;
+}
+
+.stars {
+font-size: 18px;
+letter-spacing: 2px;
+}
+
+/* 遊戲畫面容器 */
+.game-view {
+display: none;
+width: 100%;
+max-width: 650px;
+flex-direction: column;
+align-items: center;
+}
+
+/* 上方進度區域 */
+.progress-container {
+width: 100%;
+background: rgba(255, 255, 255, 0.95);
+padding: 15px 20px;
+border-radius: 20px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+text-align: center;
+margin-bottom: 15px;
+}
+
+.level-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 10px;
+}
+
+.level-title {
+font-size: 20px;
+font-weight: bold;
+color: #0288d1;
+}
+
+.btn-back {
+padding: 6px 14px;
+font-size: 14px;
+font-weight: bold;
+color: #333;
+background: #e0e0e0;
+border: none;
+border-radius: 12px;
+cursor: pointer;
+}
+
+/* 8個圓形進度圖標區域 */
+.circles-progress-wrapper {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+margin-top: 5px;
+position: relative;
+}
+
+.progress-circle {
+width: 32px;
+height: 32px;
+border-radius: 50%;
+background-color: #e0e0e0;
+border: 3px solid #b0bec5;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 14px;
+font-weight: bold;
+color: #78909c;
+transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+position: relative;
+}
+
+/* 小熊頭像 (跟隨進度移動) */
+.bear-progress-avatar {
+width: 38px;
+height: 38px;
+position: absolute;
+top: -22px;
+left: 0;
+transform: translateX(-50%);
+transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+z-index: 10;
+}
+
+.progress-circle.active {
+background-color: #4caf50;
+border-color: #2e7d32;
+color: white;
+box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.trophy-icon {
+font-size: 28px;
+margin-left: 5px;
+filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+
+/* 遊戲主要區域 */
+.game-area {
+width: 100%;
+background: linear-gradient(
+180deg, 
+#ffe082 0%, /* 上方黃金晨/夕光 */
+#80deea 20%, /* 淺綠藍淺水層 */
+#29b6f6 50%, /* 湛藍湖水層 */
+#0277bd 80%, /* 深藍底層 */
+#01579b 100%
+);
+border: 6px solid #00838f;
+border-radius: 25px;
+padding: 20px 15px 30px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+display: flex;
+flex-direction: column;
+align-items: center;
+position: relative;
+overflow: hidden;
+}
+
+/* 像素風動態水波光 */
+.river-waves {
+position: absolute;
+top: 0; left: 0; right: 0; bottom: 0;
+pointer-events: none;
+z-index: 1;
+background-image: 
+radial-gradient(ellipse at 50% 12%, rgba(255, 255, 255, 0.6) 0%, transparent 60%),
+radial-gradient(circle at 20% 35%, rgba(255, 255, 255, 0.4) 2px, transparent 3px),
+radial-gradient(circle at 80% 40%, rgba(255, 255, 255, 0.5) 2px, transparent 3px),
+radial-gradient(circle at 45% 60%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+radial-gradient(circle at 70% 75%, rgba(255, 255, 255, 0.4) 2px, transparent 3px);
+}
+
+/* 水底鵝卵石點綴 */
+.river-bed-stones {
+position: absolute;
+bottom: 0;
+left: 0;
+width: 100%;
+height: 100%;
+pointer-events: none;
+z-index: 1;
+opacity: 0.35;
+background-image: 
+radial-gradient(ellipse at 15% 88%, #37474f 12px, transparent 13px),
+radial-gradient(ellipse at 25% 92%, #263238 8px, transparent 9px),
+radial-gradient(ellipse at 35% 85%, #455a64 15px, transparent 16px),
+radial-gradient(ellipse at 65% 90%, #37474f 10px, transparent 11px),
+radial-gradient(ellipse at 80% 86%, #263238 14px, transparent 15px),
+radial-gradient(ellipse at 90% 93%, #455a64 9px, transparent 10px);
+}
+
+/* 星光閃爍效果 */
+.sparkle {
+position: absolute;
+color: #ffffff;
+font-size: 14px;
+opacity: 0.8;
+animation: blink 2.5s infinite ease-in-out;
+z-index: 1;
+}
+
+@keyframes blink {
+0%, 100% { opacity: 0.2; transform: scale(0.8); }
+50% { opacity: 1; transform: scale(1.3); }
+}
+
+.question-prompt {
+font-size: 24px;
+font-weight: bold;
+color: #01579b;
+background: rgba(255, 255, 255, 0.95);
+padding: 10px 24px;
+border-radius: 25px;
+margin-bottom: 20px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+z-index: 2;
+transition: all 0.3s ease;
+}
+
+.question-prompt.highlight-more {
+color: #e65100;
+background: #fff3e0;
+border: 2px solid #ff9800;
+}
+
+.question-prompt.highlight-less {
+color: #1a237e;
+background: #e8eaf6;
+border: 2px solid #3f51b5;
+}
+
+.stones-container {
+display: flex;
+justify-content: space-around;
+width: 100%;
+gap: 15px;
+z-index: 2;
+margin-bottom: 10px;
+}
+
+.stone-wrapper {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+
+/* 自然像素風不規則石頭 */
+.stone {
+width: 100%;
+background: radial-gradient(circle at 35% 30%, #d7ccc8 0%, #a1887f 50%, #5d4037 100%);
+border: 4px solid #3e2723;
+min-height: 220px;
+padding: 15px 10px;
+cursor: pointer;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 8px;
+transition: transform 0.2s, box-shadow 0.2s;
+box-shadow: 0 10px 0 #271c19, 0 12px 20px rgba(0,0,0,0.4);
+position: relative;
+}
+
+/* 石頭周圍的水波白邊 */
+.stone::before {
+content: "";
+position: absolute;
+top: -6px; left: -6px; right: -6px; bottom: -6px;
+border: 3px solid rgba(255, 255, 255, 0.6);
+border-radius: inherit;
+pointer-events: none;
+}
+
+#stone-left {
+border-radius: 50% 50% 45% 55% / 55% 48% 52% 45%;
+transform: rotate(-2deg);
+}
+
+#stone-right {
+border-radius: 45% 55% 52% 48% / 50% 55% 45% 50%;
+transform: rotate(3deg);
+}
+
+.stone:hover {
+transform: translateY(-5px) scale(1.02) !important;
+box-shadow: 0 14px 0 #271c19, 0 16px 25px rgba(0,0,0,0.45);
+}
+
+.stone:active {
+transform: translateY(3px) scale(0.98) !important;
+box-shadow: 0 4px 0 #271c19, 0 6px 10px rgba(0,0,0,0.3);
+}
+
+.gem-row {
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 4px;
+}
+
+.gem-icon {
+width: 24px;
+height: 24px;
+animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+}
+
+@keyframes popIn {
+0% { transform: scale(0); opacity: 0; }
+100% { transform: scale(1); opacity: 1; }
+}
+
+.bear-zone {
+z-index: 2;
+margin-top: 10px;
+display: flex;
+flex-direction: column;
+align-items: center;
+transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.bear-back {
+width: 90px;
+height: 95px;
+filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35));
+}
+
+/* 小熊跳躍至左邊石頭 */
+.bear-jump-left {
+transform: translate(-140px, -130px) scale(0.9) !important;
+}
+
+/* 小熊跳躍至右邊石頭 */
+.bear-jump-right {
+transform: translate(140px, -130px) scale(0.9) !important;
+}
+
+.feedback {
+z-index: 2;
+margin-top: 12px;
+font-size: 20px;
+font-weight: bold;
+height: 32px;
+}
+
+.correct { color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.6); }
+.wrong { color: #ff8a80; text-shadow: 0 2px 4px rgba(0,0,0,0.6); }
+
+/* 彈出視窗 Modal 樣式 */
+.modal-overlay {
+display: none;
+position: fixed;
+top: 0; left: 0; right: 0; bottom: 0;
+background: rgba(0, 0, 0, 0.5);
+z-index: 100;
+justify-content: center;
+align-items: center;
+padding: 20px;
+}
+
+.modal-card {
+background: #ffffff;
+border-radius: 25px;
+padding: 25px 30px;
+max-width: 400px;
+width: 90%;
+text-align: center;
+box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+border: 4px solid #0288d1;
+animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 15px;
+}
+
+.modal-title {
+font-size: 22px;
+font-weight: bold;
+color: #2e7d32;
+}
+
+.modal-statement {
+font-size: 32px;
+font-weight: 900;
+color: #0288d1;
+background: #e0f7fa;
+padding: 12px 24px;
+border-radius: 18px;
+border: 2px dashed #00acc1;
+width: 100%;
+}
+
+.btn-next {
+background-color: #ff9800;
+color: white;
+font-size: 22px;
+font-weight: bold;
+border: none;
+border-radius: 50px;
+padding: 10px 35px;
+cursor: pointer;
+box-shadow: 0 5px 0 #e65100;
+transition: transform 0.1s, box-shadow 0.1s;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.btn-next:hover {
+transform: translateY(-2px);
+box-shadow: 0 7px 0 #e65100;
+}
+
+.btn-next:active {
+transform: translateY(3px);
+box-shadow: 0 2px 0 #e65100;
+}
+</style>
+</head>
+<body>
+
+<!-- 第一頁：主選單 -->
+<h1 class="main-title">跳石過河</h1>
+
+<div class="menu-card" id="menu-view">
+<svg class="menu-bear-avatar" viewBox="0 0 100 100">
+<circle cx="22" cy="25" r="16" fill="#6d4c41"/>
+<circle cx="22" cy="25" r="9" fill="#8d6e63"/>
+<circle cx="78" cy="25" r="16" fill="#6d4c41"/>
+<circle cx="78" cy="25" r="9" fill="#8d6e63"/>
+<ellipse cx="50" cy="50" rx="40" ry="34" fill="#795548"/>
+<ellipse cx="50" cy="60" rx="20" ry="15" fill="#d7ccc8"/>
+<ellipse cx="50" cy="52" rx="7" ry="5" fill="#3e2723"/>
+<circle cx="33" cy="42" r="5" fill="#3e2723"/>
+<circle cx="67" cy="42" r="5" fill="#3e2723"/>
+<circle cx="35" cy="40" r="1.5" fill="#ffffff"/>
+<circle cx="69" cy="40" r="1.5" fill="#ffffff"/>
+</svg>
+
+<div class="menu-subtitle">請選擇遊戲難度</div>
+
+<div class="btn-container">
+<button class="difficulty-btn btn-easy" onclick="selectDifficulty(1)">
+<span>🟢 簡單</span>
+<span class="stars">⭐</span>
+</button>
+<button class="difficulty-btn btn-medium" onclick="selectDifficulty(2)">
+<span>🟡 中等</span>
+<span class="stars">⭐⭐</span>
+</button>
+<button class="difficulty-btn btn-hard" onclick="selectDifficulty(3)">
+<span>🔴 困難</span>
+<span class="stars">⭐⭐⭐</span>
+</button>
+</div>
+</div>
+
+<!-- 第二頁：遊戲畫面 -->
+<div class="game-view" id="game-view">
+<div class="progress-container">
+<div class="level-header">
+<div class="level-title" id="level-display">難度：簡單</div>
+<button class="btn-back" onclick="showMenu()">回主選單</button>
+</div>
+<div class="circles-progress-wrapper" id="circles-container">
+<svg class="bear-progress-avatar" id="bear-avatar" viewBox="0 0 100 100">
+<circle cx="22" cy="25" r="16" fill="#6d4c41"/>
+<circle cx="22" cy="25" r="9" fill="#8d6e63"/>
+<circle cx="78" cy="25" r="16" fill="#6d4c41"/>
+<circle cx="78" cy="25" r="9" fill="#8d6e63"/>
+<ellipse cx="50" cy="50" rx="40" ry="34" fill="#795548"/>
+<ellipse cx="50" cy="60" rx="20" ry="15" fill="#d7ccc8"/>
+<ellipse cx="50" cy="52" rx="7" ry="5" fill="#3e2723"/>
+<circle cx="33" cy="42" r="5" fill="#3e2723"/>
+<circle cx="67" cy="42" r="5" fill="#3e2723"/>
+<circle cx="35" cy="40" r="1.5" fill="#ffffff"/>
+<circle cx="69" cy="40" r="1.5" fill="#ffffff"/>
+</svg>
+</div>
+</div>
+
+<div class="game-area">
+<div class="river-waves"></div>
+<div class="river-bed-stones"></div>
+
+<!-- 動態水面閃光點綴 -->
+<div class="sparkle" style="top: 15%; left: 20%; animation-delay: 0s;">✦</div>
+<div class="sparkle" style="top: 25%; left: 75%; animation-delay: 0.8s;">✦</div>
+<div class="sparkle" style="top: 45%; left: 50%; animation-delay: 1.5s;">✦</div>
+<div class="sparkle" style="top: 70%; left: 15%; animation-delay: 0.4s;">✦</div>
+<div class="sparkle" style="top: 80%; left: 85%; animation-delay: 1.2s;">✦</div>
+
+<div class="question-prompt" id="question-text">選出數量較多的寶石</div>
+
+<div class="stones-container">
+<div class="stone-wrapper">
+<div class="stone" id="stone-left" onclick="makeChoice('left')"></div>
+</div>
+<div class="stone-wrapper">
+<div class="stone" id="stone-right" onclick="makeChoice('right')"></div>
+</div>
+</div>
+
+<div class="bear-zone" id="bear-character">
+<svg class="bear-back" viewBox="0 0 100 105">
+<circle cx="28" cy="22" r="14" fill="#6d4c41"/>
+<circle cx="28" cy="22" r="8" fill="#8d6e63"/>
+<circle cx="72" cy="22" r="14" fill="#6d4c41"/>
+<circle cx="72" cy="22" r="8" fill="#8d6e63"/>
+<ellipse cx="50" cy="38" rx="32" ry="26" fill="#795548"/>
+<path d="M 22 55 Q 50 48 78 55 L 82 92 Q 50 102 18 92 Z" fill="#795548"/>
+<circle cx="50" cy="90" r="9" fill="#6d4c41"/>
+<rect x="36" y="58" width="28" height="24" rx="6" fill="#e53935"/>
+<rect x="40" y="54" width="20" height="6" rx="2" fill="#c62828"/>
+<path d="M 38 58 Q 30 50 35 40" stroke="#b71c1c" stroke-width="3" fill="none"/>
+<path d="M 62 58 Q 70 50 65 40" stroke="#b71c1c" stroke-width="3" fill="none"/>
+</svg>
+</div>
+
+<div class="feedback" id="feedback"></div>
+</div>
+</div>
+
+<!-- 完成題目的彈出視窗 -->
+<div class="modal-overlay" id="result-modal">
+<div class="modal-card">
+<div class="modal-title">🎉 答對了！</div>
+<div class="modal-statement" id="modal-statement-text">7 比 3 多</div>
+<button class="btn-next" onclick="nextQuestion()">➡️ 下一題</button>
+</div>
+</div>
+
+<script>
+let currentLevel = 1;
+let currentStep = 0;
+const totalSteps = 8;
+let leftCount = 0;
+let rightCount = 0;
+let currentTarget = 'more';
+
+const levelConfigs = {
+1: { min: 1, max: 10, name: "簡單", mode: 'more', perRow: 5 },
+2: { min: 1, max: 15, name: "中等", mode: 'less', perRow: 5 },
+3: { min: 1, max: 20, name: "困難", mode: 'random', perRow: 5 }
+};
+
+const gemSVGs = {
+blue: `<svg class="gem-icon" viewBox="0 0 100 100"><polygon points="50,5 90,30 75,90 25,90 10,30" fill="#00bcd4" stroke="#00838f" stroke-width="4"/><polygon points="50,5 90,30 50,45" fill="#4dd0e1"/><polygon points="50,5 10,30 50,45" fill="#80deea"/><polygon points="10,30 25,90 50,45" fill="#26c6da"/><polygon points="90,30 75,90 50,45" fill="#00acc1"/></svg>`,
+red: `<svg class="gem-icon" viewBox="0 0 100 100"><polygon points="50,5 90,30 75,90 25,90 10,30" fill="#f44336" stroke="#c62828" stroke-width="4"/><polygon points="50,5 90,30 50,45" fill="#ef5350"/><polygon points="50,5 10,30 50,45" fill="#e57373"/><polygon points="10,30 25,90 50,45" fill="#e53935"/><polygon points="90,30 75,90 50,45" fill="#d32f2f"/></svg>`,
+green: `<svg class="gem-icon" viewBox="0 0 100 100"><polygon points="50,5 90,30 75,90 25,90 10,30" fill="#4caf50" stroke="#2e7d32" stroke-width="4"/><polygon points="50,5 90,30 50,45" fill="#66bb6a"/><polygon points="50,5 10,30 50,45" fill="#81c784"/><polygon points="10,30 25,90 50,45" fill="#43a047"/><polygon points="90,30 75,90 50,45" fill="#388e3c"/></svg>`,
+purple: `<svg class="gem-icon" viewBox="0 0 100 100"><polygon points="50,5 90,30 75,90 25,90 10,30" fill="#9c27b0" stroke="#6a1b9a" stroke-width="4"/><polygon points="50,5 90,30 50,45" fill="#ab47bc"/><polygon points="50,5 10,30 50,45" fill="#ba68c8"/><polygon points="10,30 25,90 50,45" fill="#8e24aa"/><polygon points="90,30 75,90 50,45" fill="#7b1fa2"/></svg>`,
+yellow: `<svg class="gem-icon" viewBox="0 0 100 100"><polygon points="50,5 90,30 75,90 25,90 10,30" fill="#ffeb3b" stroke="#f57f17" stroke-width="4"/><polygon points="50,5 90,30 50,45" fill="#ffee58"/><polygon points="50,5 10,30 50,45" fill="#fff176"/><polygon points="10,30 25,90 50,45" fill="#fdd835"/><polygon points="90,30 75,90 50,45" fill="#fbc02d"/></svg>`
+};
+
+const colorKeys = Object.keys(gemSVGs);
+
+function selectDifficulty(levelIndex) {
+currentLevel = levelIndex;
+currentStep = 0;
+document.getElementById('menu-view').style.display = 'none';
+document.getElementById('game-view').style.display = 'flex';
+document.getElementById('level-display').innerText = `難度：${levelConfigs[currentLevel].name}`;
+
+renderProgressCircles();
+initQuestion();
+}
+
+function showMenu() {
+document.getElementById('game-view').style.display = 'none';
+document.getElementById('menu-view').style.display = 'flex';
+document.getElementById('result-modal').style.display = 'none';
+}
+
+function renderProgressCircles() {
+const container = document.getElementById('circles-container');
+const bearAvatar = document.getElementById('bear-avatar');
+container.innerHTML = '';
+container.appendChild(bearAvatar);
+
+for (let i = 1; i <= totalSteps; i++) {
+const circle = document.createElement('div');
+circle.className = 'progress-circle';
+circle.id = `circle-${i}`;
+circle.innerText = i;
+container.appendChild(circle);
+}
+const trophy = document.createElement('span');
+trophy.className = 'trophy-icon';
+trophy.innerText = '🏆';
+container.appendChild(trophy);
+
+setTimeout(updateProgressUI, 50);
+}
+
+function initQuestion() {
+document.getElementById('feedback').innerText = '';
+document.getElementById('result-modal').style.display = 'none';
+const config = levelConfigs[currentLevel];
+
+// 重置小熊位置回到中央
+const bear = document.getElementById('bear-character');
+bear.classList.remove('bear-jump-left', 'bear-jump-right');
+
+if (config.mode === 'more') {
+currentTarget = 'more';
+} else if (config.mode === 'less') {
+currentTarget = 'less';
+} else if (config.mode === 'random') {
+currentTarget = Math.random() < 0.5 ? 'more' : 'less';
+}
+
+const promptEl = document.getElementById('question-text');
+if (currentTarget === 'more') {
+promptEl.innerText = '選出數量較多的寶石';
+promptEl.className = 'question-prompt highlight-more';
+} else {
+promptEl.innerText = '選出數量較少的寶石';
+promptEl.className = 'question-prompt highlight-less';
+}
+
+leftCount = Math.floor(Math.random() * (config.max - config.min + 1)) + config.min;
+do {
+rightCount = Math.floor(Math.random() * (config.max - config.min + 1)) + config.min;
+} while (rightCount === leftCount);
+
+const leftColorIndex = Math.floor(Math.random() * colorKeys.length);
+let rightColorIndex;
+do {
+rightColorIndex = Math.floor(Math.random() * colorKeys.length);
+} while (rightColorIndex === leftColorIndex);
+
+const leftGemSVG = gemSVGs[colorKeys[leftColorIndex]];
+const rightGemSVG = gemSVGs[colorKeys[rightColorIndex]];
+
+renderStructuredGems('stone-left', leftCount, leftGemSVG, config.perRow);
+renderStructuredGems('stone-right', rightCount, rightGemSVG, config.perRow);
+}
+
+function renderStructuredGems(elementId, count, gemSVG, itemsPerRow) {
+const stone = document.getElementById(elementId);
+stone.innerHTML = '';
+
+const fullRows = Math.floor(count / itemsPerRow);
+const remainder = count % itemsPerRow;
+
+for (let r = 0; r < fullRows; r++) {
+const rowDiv = document.createElement('div');
+rowDiv.className = 'gem-row';
+for (let i = 0; i < itemsPerRow; i++) {
+rowDiv.innerHTML += gemSVG;
+}
+stone.appendChild(rowDiv);
+}
+
+if (remainder > 0) {
+const rowDiv = document.createElement('div');
+rowDiv.className = 'gem-row';
+for (let i = 0; i < remainder; i++) {
+rowDiv.innerHTML += gemSVG;
+}
+stone.appendChild(rowDiv);
+}
+}
+
+function makeChoice(choice) {
+const isLeftMore = leftCount > rightCount;
+let isCorrect = false;
+
+if (currentTarget === 'more') {
+isCorrect = (choice === 'left' && isLeftMore) || (choice === 'right' && !isLeftMore);
+} else {
+isCorrect = (choice === 'left' && !isLeftMore) || (choice === 'right' && isLeftMore);
+}
+
+const feedbackEl = document.getElementById('feedback');
+const bear = document.getElementById('bear-character');
+
+if (isCorrect) {
+feedbackEl.className = 'feedback correct';
+feedbackEl.innerText = '🎉 答對了！';
+
+// 小熊平滑跳躍到對應石頭上
+if (choice === 'left') {
+bear.classList.add('bear-jump-left');
+} else {
+bear.classList.add('bear-jump-right');
+}
+
+currentStep++;
+updateProgressUI();
+
+// 設定彈出視窗內容「X 比 Y 多」或「X 比 Y 少」
+const modalStatement = document.getElementById('modal-statement-text');
+const chosenCount = (choice === 'left') ? leftCount : rightCount;
+const otherCount = (choice === 'left') ? rightCount : leftCount;
+
+if (currentTarget === 'more') {
+modalStatement.innerText = `${chosenCount} 比 ${otherCount} 多`;
+} else {
+modalStatement.innerText = `${chosenCount} 比 ${otherCount} 少`;
+}
+
+// 延遲跳躍動畫後彈出視窗
+setTimeout(() => {
+document.getElementById('result-modal').style.display = 'flex';
+}, 600);
+
+} else {
+feedbackEl.className = 'feedback wrong';
+const promptTip = currentTarget === 'more' ? '較多' : '較少';
+feedbackEl.innerText = `❌ 再幫小熊數數看，哪邊的寶石「${promptTip}」呢？`;
+}
+}
+
+function nextQuestion() {
+document.getElementById('result-modal').style.display = 'none';
+if (currentStep >= totalSteps) {
+alert(`🏆 太棒了！小熊順利過河完成了【${levelConfigs[currentLevel].name}】難度！`);
+showMenu();
+} else {
+initQuestion();
+}
+}
+
+function updateProgressUI() {
+const avatar = document.getElementById('bear-avatar');
+
+for (let i = 1; i <= totalSteps; i++) {
+const circle = document.getElementById(`circle-${i}`);
+if (circle) {
+if (i <= currentStep) {
+circle.classList.add('active');
+circle.innerText = '✓';
+} else {
+circle.classList.remove('active');
+circle.innerText = i;
+}
+}
+}
+
+if (currentStep === 0) {
+const firstCircle = document.getElementById('circle-1');
+if (firstCircle) {
+avatar.style.left = `${firstCircle.offsetLeft + firstCircle.offsetWidth / 2 - 25}px`;
+}
+} else if (currentStep <= totalSteps) {
+const targetCircle = document.getElementById(`circle-${currentStep}`);
+if (targetCircle) {
+avatar.style.left = `${targetCircle.offsetLeft + targetCircle.offsetWidth / 2}px`;
+}
+}
+}
+
+window.addEventListener('resize', updateProgressUI);
+</script>
+</body>
+</html>
+

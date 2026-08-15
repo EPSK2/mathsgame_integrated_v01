@@ -117,7 +117,7 @@ function positionDialogSpeechBubble() {
 
   const bearRect = helperBear.getBoundingClientRect();
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight || bearRect.height;
-  const bubbleHeightPx = viewportHeight * 0.05; // 5vh
+  const bubbleHeightPx = viewportHeight * 0.05; // 5dvh
   const bubbleWidthPx = bearRect.width * 0.9;
 
   dialogSpeechBubbleEl.style.height = `${bubbleHeightPx}px`;
@@ -153,6 +153,47 @@ function showExclamSpeechBubble() {
 function hideDialogSpeechBubble() {
   if (!dialogSpeechBubbleEl) return;
   dialogSpeechBubbleEl.style.opacity = "0";
+}
+
+function showMenuStartupOverlay(onStart) {
+  const overlay = document.getElementById("menuStartupOverlay");
+  const startButton = document.getElementById("menuStartupStartButton");
+  if (!overlay) {
+    if (typeof onStart === "function") {
+      onStart();
+    }
+    return;
+  }
+
+  const begin = function (event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (startButton) {
+      startButton.removeEventListener("click", begin);
+    }
+
+    overlay.classList.remove("is-visible");
+    overlay.setAttribute("aria-hidden", "true");
+    window.setTimeout(() => {
+      overlay.classList.add("hidden");
+      if (typeof onStart === "function") {
+        onStart();
+      }
+    }, 220);
+  };
+
+  overlay.classList.remove("hidden");
+  overlay.setAttribute("aria-hidden", "false");
+  void overlay.offsetWidth;
+  overlay.classList.add("is-visible");
+
+  if (startButton) {
+    startButton.addEventListener("click", begin);
+  } else {
+    overlay.addEventListener("click", begin, { once: true });
+  }
 }
 
 
@@ -1079,6 +1120,7 @@ const MENU2_PREVIOUS_STAGE = {
   "range-choice": "tutorial-choice",
 };
 
+
 const menu2FlowState = {
   activeStage: MENU2_FIRST_STAGE,
 };
@@ -1331,27 +1373,10 @@ function startMenu2OptionFlow() {
   menu2Overlay.classList.add("is-visible");
   menu2Overlay.setAttribute("aria-hidden", "false");
 
-  const tutorialStageEl = document.querySelector('.menu2-stage[data-stage="tutorial-choice"]');
-  if (tutorialStageEl) {
-    tutorialStageEl.classList.remove("is-active", "fade-in-on-audio");
-  }
-
-  playNarrationTrack(0, {
-    onEnded: () => {
-      playNarrationTrack(1, {
-        onStart: () => {
-          if (tutorialStageEl) {
-            tutorialStageEl.classList.add("is-active", "fade-in-on-audio");
-            window.setTimeout(() => {
-              tutorialStageEl.classList.remove("fade-in-on-audio");
-            }, 900);
-          }
-          scheduleMenu2QuestionReplay();
-        },
-      });
-    },
-  });
+  // Start directly at the tutorial-choice prompt narration.
+  playNarrationTrack(1);
 }
+
 
 class DialogManager {
 
@@ -2080,7 +2105,7 @@ function runBearWalkSequence() {
 
     // Ensure starting position and size
     walkingBear.style.left = "-5vw";
-    walkingBear.style.top = "25vh";
+    walkingBear.style.top = "25dvh";
 
     const WALK_X_FRAMES = ["./bear_side.png", "./bear_walk_side.png"];
     const WALK_Y_FRAMES = ["./bear_walk_left_ground.png", "./bear_walk_right_ground.png"];
@@ -2125,7 +2150,7 @@ function runBearWalkSequence() {
           const currentTop = fromTop + (toTop - fromTop) * t;
 
           walkingBear.style.left = `${currentLeft}vw`;
-          walkingBear.style.top = `${currentTop}vh`;
+          walkingBear.style.top = `${currentTop}dvh`;
 
           // Toggle sprite frame
           if (now - lastFrameSwitch >= frameIntervalMs) {
@@ -2139,7 +2164,7 @@ function runBearWalkSequence() {
           } else {
             // Snap to final position and reset to first frame for this direction
             walkingBear.style.left = `${toLeft}vw`;
-            walkingBear.style.top = `${toTop}vh`;
+            walkingBear.style.top = `${toTop}dvh`;
             walkingBear.src = frames[0];
             segmentResolve();
           }
@@ -2157,7 +2182,7 @@ function runBearWalkSequence() {
         fromTop: 20,
         toLeft: 22.5,
         toTop: 20,
-        durationMs: 1250,
+        durationMs: 500,
         direction: "x+",
       });
 
@@ -2166,7 +2191,7 @@ function runBearWalkSequence() {
         fromTop: 20,
         toLeft: 22.5,
         toTop: 40,
-        durationMs: 500,
+        durationMs: 200,
         direction: "y+",
       });
 
@@ -2175,7 +2200,7 @@ function runBearWalkSequence() {
         fromTop: 40,
         toLeft: 15,
         toTop: 40,
-        durationMs: 500,
+        durationMs: 200,
         direction: "x-",
       });
 
@@ -2184,20 +2209,20 @@ function runBearWalkSequence() {
         fromTop: 40,
         toLeft: 15,
         toTop: 80,
-        durationMs: 1500,
+        durationMs: 500,
         direction: "y+",
       });
 
           const rightEdgeTargetVw = 45;
           const finalBearLeftVw = getBearLeftForRightEdgeVw(rightEdgeTargetVw);
 
-            // 3) Walk in +x direction: (15vw,80vh) -> (45vw,80vh) where bear right edge ends at 45vw
+            // 3) Walk in +x direction: (15vw,80dvh) -> (45vw,80dvh) where bear right edge ends at 45vw
       await animateSegment({
         fromLeft: 15,
         fromTop: 80,
             toLeft: finalBearLeftVw,
         toTop: 80,
-        durationMs: 1500,
+        durationMs: 200,
         direction: "x+",
       });
 
@@ -2390,7 +2415,7 @@ window.onload = async function() {
     }
 
         // 定義主選單開場流程：先預載入熊角色圖片，再行走熊，後標題與菜單動畫
-    async function startMenuIntroSequence() {
+        async function startMenuIntroSequence() {
       try {
         // Preload all bear_* images using JavaScript before any animation runs.
         await preloadBearImages();
@@ -2400,23 +2425,29 @@ window.onload = async function() {
         await runBearWalkSequence();
       } catch (_) {}
 
-      startTitleIntro();
+      // After the bear finishes walking, immediately show the menu options overlay
+      // and start at the tutorial-choice prompt.
+      startMenu2OptionFlow();
     }
 
-    // 只有當準備覆蓋層完全消失後，才開始行走熊與標題動畫
-    if (typeof window.hidePrepOverlay === "function") {
-      window.onPrepOverlayHidden = async function () {
+
+    const beginMenuFromStartupOverlay = function () {
+      showMenuStartupOverlay(async function () {
         if (typeof window.playPrepBgMusicLoop === "function") {
           window.playPrepBgMusicLoop();
         }
-
         await startMenuIntroSequence();
-      };
+      });
+    };
+
+    // 只有當準備覆蓋層完全消失後，才顯示主選單專屬啟動覆蓋層
+    if (typeof window.hidePrepOverlay === "function") {
+      window.onPrepOverlayHidden = beginMenuFromStartupOverlay;
 
       window.hidePrepOverlay();
     } else {
-      // 如果沒有覆蓋層，直接開始主選單開場流程
-      startMenuIntroSequence();
+      // 如果沒有準備覆蓋層，直接顯示主選單專屬啟動覆蓋層
+      beginMenuFromStartupOverlay();
     }
 }
 //});

@@ -16,6 +16,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "NotoEmoji-Regular";
+  src: url("../NotoEmoji-Regular.ttf") format("truetype");
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+}
+
 *,
 *::before,
 *::after {
@@ -90,6 +98,7 @@ body.mode-mixed .game-shell {
   padding: 0.35rem;
   text-decoration: none;
   background: transparent;
+  font-family: "NotoEmoji-Regular", "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif !important;
 }
 
 .ui-home-icon {
@@ -662,6 +671,7 @@ body.mode-multiplayer .ui-question-orb-right {
   font-size: 3vw;
   font-weight: 900;
   line-height: 1;
+  font-family: "NotoEmoji-Regular", "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
   cursor: pointer;
   box-shadow: 0 0.45rem 1rem rgba(22, 11, 5, 0.12);
 }
@@ -1145,6 +1155,7 @@ body.mode-single-op:not(.mode-multiplayer) .ui-end-bear-slot[data-side="left"] .
   font-size: 20vw;
   font-weight: 900;
   line-height: 1;
+  font-family: "NotoEmoji-Regular", "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
   cursor: pointer;
 }
 
